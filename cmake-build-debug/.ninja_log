@@ -1,0 +1,5 @@
+# ninja log v5
+4	2394	6847733043317660	CMakeFiles/compYler.dir/main.cpp.obj	e05e98dedcb011b3
+4	2712	6847748226479813	CMakeFiles/compYler.dir/Parser.cpp.obj	bbb35246343259f5
+4	1446	6847684119548889	build.ninja	64a3ad71163d874d
+2714	4055	6847748239718843	compYler.exe	84ee53f13688384d
