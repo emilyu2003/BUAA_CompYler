@@ -11,6 +11,7 @@
 using namespace std;
 
 extern int readPos;
+int lineNum;
 unordered_map<string, int> Ident;
 unordered_map<string, int> FormatString;
 
@@ -25,6 +26,7 @@ string symbol[40] = {
 
 
 void initLexer() {
+    lineNum = 0;
     FormatString["main"] = MAINTK;
     FormatString["const"] = CONSTTK;
     FormatString["int"] = INTTK;
@@ -70,6 +72,9 @@ int lexer(string inputCode, int len) {
     // read blank lines
     while (readPos < len && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
         readPos++;
+        if (inputCode[readPos] == '\n') {
+            lineNum++;
+        }
     }
     // extract // and /**/
     while (inputCode[readPos] == '/') {
@@ -103,6 +108,9 @@ int lexer(string inputCode, int len) {
         // read blank lines
         while (readPos < len && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
             readPos++;
+            if (inputCode[readPos] == '\n') {
+                lineNum++;
+            }
         }
     }
 
