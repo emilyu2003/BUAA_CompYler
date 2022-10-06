@@ -95,7 +95,7 @@ int lexer() {
     string str;
 
     // read blank lines
-    while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
+    while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
         readPos++;
         if (inputCode[readPos] == '\n') {
             lineNum++;
@@ -131,7 +131,7 @@ int lexer() {
             break;
         }
         // read blank lines
-        while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
+        while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
             readPos++;
             if (inputCode[readPos] == '\n') {
                 lineNum++;

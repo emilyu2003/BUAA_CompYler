@@ -24,8 +24,8 @@ int RelExp() {
     int tmp = peek();
     while (tmp == LEQ || tmp == GEQ || tmp == LSS || tmp == GRE) {
         now = lexer();
-        tmp = peek();
         AddExp();
+        tmp = peek();
     }
 
     printParseResult("RelExp");
@@ -37,8 +37,8 @@ int EqExp() {
     int tmp = peek();
     while (tmp == EQL || tmp == NEQ) {
         now = lexer();
-        tmp = peek();
         RelExp();
+        tmp = peek();
     }
 
     printParseResult("EqExp");
@@ -50,8 +50,8 @@ int LAndExp() {
     int tmp = peek();
     while (tmp == AND) {
         now = lexer();
-        tmp = peek();
         EqExp();
+        tmp = peek();
     }
 
     printParseResult("LAndExp");
@@ -63,8 +63,8 @@ int LOrExp() {
     int tmp = peek();
     while (tmp == OR) {
         now = lexer();
-        tmp = peek();
         LAndExp();
+        tmp = peek();
     }
 
     printParseResult("LOrExp");
