@@ -46,6 +46,7 @@ int EqExp() {
 }
 
 int LAndExp() {
+    EqExp();
     int tmp = peek();
     while (tmp == AND) {
         now = lexer();
@@ -109,8 +110,10 @@ int FuncRParams() {
     int tmp = peek();
     while (tmp != RPARENT) {
         Exp();
-        now = lexer();  // now == COMMA
         tmp = peek();
+        if (tmp != RPARENT) {
+            now = lexer();  // now == COMMA
+        }
     }
 
     printParseResult("FuncRParams");
@@ -145,13 +148,13 @@ int UnaryOp() {
 int UnaryExp() {
     int tmp = peek();
     if (tmp == PLUS || tmp == MINU || tmp == NOT) {
-        now = lexer();
+        //now = lexer();
         UnaryOp();
         UnaryExp();
     } else {
         if (tmp == IDENFR) {
             int ttmp = peeeek();
-            if(ttmp == LPARENT) {
+            if (ttmp == LPARENT) {
                 now = lexer();
                 now = lexer(); // LPARENT
                 //now = lexer();
@@ -187,7 +190,7 @@ int AddExp() {
     MulExp();
     int tmp = peek();
     while (tmp == PLUS || tmp == MINU) {
-        now = lexer();  // now == PLUS
+        now = lexer();  // now == PLUS || MINU
         MulExp();
         tmp = peek();
     }
@@ -259,6 +262,7 @@ int ConstDecl() {
 }
 
 int InitVal() {
+    //TODO problem here
     // now == ASSIGN
     int tmp = peek();
     if (tmp == LBRACE) {
@@ -301,6 +305,7 @@ int VarDef() {
             now = lexer();
         }
     }
+    tmp = peek();
     if (tmp == ASSIGN) {
         now = lexer();
         InitVal();
@@ -376,7 +381,7 @@ int Stmt() {
         now = lexer();  // now == SEMICN
     } else if (tmp == RETURNTK) {
         now = lexer();
-        now = lexer();
+        //now = lexer();
         if (now != SEMICN) {
             Exp();
         }
@@ -398,7 +403,7 @@ int Stmt() {
     } else if (tmp == IFTK) {
         now = lexer();  // now == IFTK
         now = lexer(); // now == LPARENT
-        now = lexer();
+        //now = lexer();
         Cond();
         // now == RPARENT
         now = lexer();
@@ -411,7 +416,7 @@ int Stmt() {
     } else if (tmp == WHILETK) {
         now = lexer();  // now == WHILETK
         now = lexer(); // now == LPARENT
-        now = lexer();
+        //now = lexer();
         Cond();
         // now == RPARENT
         now = lexer();

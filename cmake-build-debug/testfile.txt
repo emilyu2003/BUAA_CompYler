@@ -1,6 +1,103 @@
-int main(){
-    int c;
-    c= getint();
-    printf("%d",c);
-    return c;
+//
+// Created by emilyu on 2022/9/6.
+// Game Theory
+// take stone from piles or combine two piles
+// A
+//
+const int N = 50 + 5;
+const int M = 500;
+int f[50 + 5][500];
+int global_var = 0;
+
+int dp(int a, int b) {
+    if (f[a][b] != -1) {
+        return f[a][b];
+    }
+    if (!a) {
+        f[a][b] = b % 2;
+        return f[a][b];
+    }
+    if (b == 1) {
+        return dp(a + 1, 0);
+    }
+    if (!dp(a - 1, b)) {
+        f[a][b] = 1;
+        return f[a][b];
+    }
+    if (b && !dp(a, b - 1)) {
+        f[a][b] = 1;
+        return f[a][b];
+    }
+    int t;
+    if (b) {
+        t = b + 3;
+    } else {
+        t = b + 2;
+    }
+    if (a >= 2 && !dp(a - 2, t)) {
+        f[a][b] = 1;
+        return f[a][b];
+    }
+
+    if (b && !dp(a - 1, b + 1)) {
+        f[a][b] = 1;
+        return f[a][b];
+    }
+
+    f[a][b] = 0;
+    return f[a][b];
+}
+
+int func() {
+    global_var = global_var + 1;
+    return global_var;
+}
+
+int main() {
+    printf("20373569 the mafia~\n");
+    int i = 0;
+    while (i < N) {
+        int j = 0;
+        while (j < M) {
+            f[i][j] = -1;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    int T;
+    T = getint();
+    while (T) {
+        T = T - 1;
+        int n;
+        n = getint();
+        int a = 0, b = 0;
+        i = 0;
+        while (i < n) {
+            int x;
+            x = getint();
+            if (x == 1) {
+                a = a + 1;
+            } else {
+                if (!b) {
+                    b = b + x;
+                } else {
+                    b = b + x + 1;
+                }
+            }
+            i = i + 1;
+        }
+        if (dp(a, b)) {
+            printf("YES\n");
+        } else {
+            printf("NO\n");
+        }
+    }
+
+    if (0 && func()) { ;
+    }
+    printf("%d ", global_var);
+    if (1 || func()) { ;
+    }
+    printf("%d\n", global_var);
+    return 0;
 }
