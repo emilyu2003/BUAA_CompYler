@@ -39,15 +39,16 @@
 #define RBRACK      36
 #define LBRACE      37
 #define RBRACE      38
-
+#include <string>
 
 void initLexer();
 
-int lexer(std::string str, int len);
+int lexer();
+
+int peek();
+
+int peeeek();
 
 void printSymbol(int type, std::string str);
-
-extern int readPos;
-extern std::string symbol[40];
 
 #endif

@@ -7,12 +7,14 @@
 #include <unordered_map>
 #include<fstream>
 #include "symbol.h"
+#include "parse.h"
+#include "base.h"
 
 using namespace std;
 
 string inputCode;
 int readPos = 0;
-int inputLen = 0;
+int inputLen;
 char line[500];
 
 int main() {
@@ -30,9 +32,7 @@ int main() {
     }
     inputLen = inputCode.size();
     initLexer();
-    while (readPos < inputLen) {
-        lexer(inputCode, inputLen);
-    }
+    parse();
 
     return 0;
 }

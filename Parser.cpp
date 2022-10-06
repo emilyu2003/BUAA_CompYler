@@ -1,194 +1,521 @@
-#include <cstdio>
-#include <iostream>
-#include <cstring>
-#include <algorithm>
-#include <cctype>
-#include <vector>
-#include <string>
-#include <unordered_map>
+//
+// Created by emilyu on 2022/9/27.
+//
 #include "symbol.h"
+#include "parse.h"
+#include "base.h"
+#include <cstdio>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <iostream>
 
 using namespace std;
 
-extern int readPos;
-int lineNum;
-unordered_map<string, int> Ident;
-unordered_map<string, int> FormatString;
+int now;
 
-string symbol[40] = {
-        "IDENFR", "INTCON", "STRCON", "MAINTK", "CONSTTK", "INTTK", "BREAKTK",
-        "CONTINUETK", "IFTK", "ELSETK", "NOT", "AND", "OR", "WHILETK",
-        "GETINTTK", "PRINTFTK", "RETURNTK", "PLUS", "MINU", "VOIDTK", "MULT",
-        "DIV", "MOD", "LSS", "LEQ", "GRE", "GEQ", "EQL",
-        "NEQ", "ASSIGN", "SEMICN", "COMMA", "LPARENT", "RPARENT", "LBRACK",
-        "RBRACK", "LBRACE", "RBRACE"
-};
-
-
-void initLexer() {
-    lineNum = 0;
-    FormatString["main"] = MAINTK;
-    FormatString["const"] = CONSTTK;
-    FormatString["int"] = INTTK;
-    FormatString["break"] = BREAKTK;
-    FormatString["continue"] = CONTINUETK;
-    FormatString["if"] = IFTK;
-    FormatString["else"] = ELSETK;
-    FormatString["while"] = WHILETK;
-    FormatString["getint"] = GETINTTK;
-    FormatString["printf"] = PRINTFTK;
-    FormatString["return"] = RETURNTK;
-    FormatString["void"] = VOIDTK;
-
-    FormatString["!"] = NOT;
-    FormatString["&&"] = AND;
-    FormatString["||"] = OR;
-    FormatString["+"] = PLUS;
-    FormatString["-"] = MINU;
-    FormatString["*"] = MULT;
-    FormatString["/"] = DIV;
-    FormatString["%"] = MOD;
-    FormatString["<"] = LSS;
-    FormatString["<="] = LEQ;
-    FormatString[">"] = GRE;
-    FormatString[">="] = GEQ;
-    FormatString["=="] = EQL;
-    FormatString["!="] = NEQ;
-    FormatString["="] = ASSIGN;
-    FormatString[";"] = SEMICN;
-    FormatString[","] = COMMA;
-    FormatString["("] = LPARENT;
-    FormatString[")"] = RPARENT;
-    FormatString["["] = LBRACK;
-    FormatString["]"] = RBRACK;
-    FormatString["{"] = LBRACE;
-    FormatString["}"] = RBRACE;
+void printParseResult(const string &s) {
+    cout << "<" << s << ">" << endl;
 }
 
-int lexer(string inputCode, int len) {
-    int type = 0;
-    string str;
-
-    // read blank lines
-    while (readPos < len && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
-        readPos++;
-        if (inputCode[readPos] == '\n') {
-            lineNum++;
-        }
-    }
-    // extract // and /**/
-    while (inputCode[readPos] == '/') {
-        if (readPos + 1 == len) {
-            return -1;
-        }
-        if (inputCode[readPos + 1] == '/') {
-            while (readPos < len && inputCode[readPos] != '\n') {
-                readPos++;
-            }
-            if (inputCode[readPos] == '\n') {
-                readPos++;
-            } else {
-                break;
-            }
-        } else if (inputCode[readPos + 1] == '*') {
-            readPos += 2;
-            while (readPos + 1 < len &&
-                   !(inputCode[readPos] == '*' && inputCode[readPos + 1] == '/')) {
-                readPos++;
-            }
-            if (readPos + 1 < len &&
-                inputCode[readPos] == '*' && inputCode[readPos + 1] == '/') {
-                readPos += 2;
-            } else {
-                return -1;
-            }
-        } else {
-            break;
-        }
-        // read blank lines
-        while (readPos < len && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ')) {
-            readPos++;
-            if (inputCode[readPos] == '\n') {
-                lineNum++;
-            }
-        }
+/* end 默认包括; */
+int RelExp() {
+    AddExp();
+    int tmp = peek();
+    while (tmp == LEQ || tmp == GEQ || tmp == LSS || tmp == GRE) {
+        now = lexer();
+        tmp = peek();
+        AddExp();
     }
 
-    // extract ""
-    if (inputCode[readPos] == '"') {
-        str += inputCode[readPos];
-        readPos++;
-        while (readPos < len && inputCode[readPos] != '"') {
-            str += inputCode[readPos];
-            readPos++;
-        }
-        if (readPos >= len || inputCode[readPos] != '"') {
-            return -1;
-        }
-        str += inputCode[readPos];
-        type = STRCON;
-    }
-
-        // extract string
-    else if (isalpha(inputCode[readPos]) || inputCode[readPos] == '_') {
-        while (readPos < len && (isalnum(inputCode[readPos]) || inputCode[readPos] == '_')) {
-            str += inputCode[readPos];
-            readPos++;
-        }
-        readPos--;
-        type = IDENFR;
-    }
-
-        // extract num
-    else if (isdigit(inputCode[readPos])) {
-        while (readPos < len && isdigit(inputCode[readPos])) {
-            str += inputCode[readPos];
-            readPos++;
-        }
-        readPos--;
-        type = INTCON;
-    }
-
-        // extract ! and != / < and <= / > and >= / = and ==
-    else if (inputCode[readPos] == '<' || inputCode[readPos] == '>' ||
-             inputCode[readPos] == '=' || inputCode[readPos] == '!') {
-        str += inputCode[readPos];
-        if (readPos + 1 < len && inputCode[readPos + 1] == '=') {
-            str += '=';
-            readPos++;
-        }
-    }
-
-        // extract || / &&
-    else if (inputCode[readPos] == '|' || inputCode[readPos] == '&') {
-        str += inputCode[readPos];
-        if (readPos + 1 < len && inputCode[readPos + 1] == str[0]) {
-            str += inputCode[readPos + 1];
-        } else {
-            return -1;
-        }
-        readPos++;
-    }
-
-    // extract + - * / % ; , ( ) [ ] { }
-    char c = inputCode[readPos];
-    if (c == '+' || c == '-' || c == '*' || c == '/' ||
-        c == '%' || c == ';' || c == ',' ||
-        c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}') {
-        str = c;
-    }
-
-    readPos++;
-    // print and return
-    if (FormatString.count(str)) {
-        type = FormatString[str];
-    } else if (type == 0) {
-        return -1;
-    }
-    printSymbol(type, str);
-    return type;
+    printParseResult("RelExp");
+    return 1;
 }
 
-void printSymbol(int type, string str) {
-    cout << symbol[type - 1] << " " << str << endl;
+int EqExp() {
+    RelExp();
+    int tmp = peek();
+    while (tmp == EQL || tmp == NEQ) {
+        now = lexer();
+        tmp = peek();
+        RelExp();
+    }
+
+    printParseResult("EqExp");
+    return 1;
+}
+
+int LAndExp() {
+    int tmp = peek();
+    while (tmp == AND) {
+        now = lexer();
+        tmp = peek();
+        EqExp();
+    }
+
+    printParseResult("LAndExp");
+    return 1;
+}
+
+int LOrExp() {
+    LAndExp();
+    int tmp = peek();
+    while (tmp == OR) {
+        now = lexer();
+        tmp = peek();
+        LAndExp();
+    }
+
+    printParseResult("LOrExp");
+    return 1;
+}
+
+int Exp() {
+    AddExp();
+
+    printParseResult("Exp");
+    return 1;
+}
+
+int Cond() {
+    LOrExp();
+
+    printParseResult("Cond");
+    return 1;
+}
+
+int LVal() {
+    // now = IDENFR
+    for (int i = 0; i < 2; i++) {
+        int tmp = peek();
+        if (tmp != LBRACK) break;
+        now = lexer();      // now = LBRACK
+        Exp();
+        now = lexer();      // now = RBRACK
+        if (now != RBRACK) break;
+    }
+
+    printParseResult("LVal");
+    return 1;
+}
+
+int Number() {
+    now = lexer();
+    printParseResult("Number");
+    return 1;
+}
+
+int FuncRParams() {
+    int tmp = peek();
+    while (tmp != RPARENT) {
+        Exp();
+        now = lexer();  // now == COMMA
+        tmp = peek();
+    }
+
+    printParseResult("FuncRParams");
+    return 1;
+}
+
+int PrimaryExp() {
+    int tmp = peek();
+    if (tmp == LPARENT) {
+        now = lexer();
+        Exp();
+        now = lexer();  // now == RPARENT
+    } else {
+        if (tmp == INTCON) {
+            Number();
+        } else {
+            LVal();
+        }
+    }
+
+    printParseResult("PrimaryExp");
+    return 1;
+}
+
+int UnaryOp() {
+    now = lexer();
+
+    printParseResult("UnaryOp");
+    return 1;
+}
+
+int UnaryExp() {
+    int tmp = peek();
+    if (tmp == PLUS || tmp == MINU || tmp == NOT) {
+        now = lexer();
+        UnaryOp();
+        UnaryExp();
+    } else {
+        if (tmp == IDENFR) {
+            int ttmp = peeeek();
+            if(ttmp == LPARENT) {
+                now = lexer();
+                now = lexer(); // LPARENT
+                //now = lexer();
+                FuncRParams();
+                now = lexer(); // RPARENT
+            } else {
+                now = lexer();
+                PrimaryExp();
+            }
+        } else {
+            PrimaryExp();
+        }
+    }
+
+    printParseResult("UnaryExp");
+    return 1;
+}
+
+int MulExp() {
+    UnaryExp();
+    int tmp = peek();
+    while (tmp == MULT || tmp == DIV || tmp == MOD) {
+        now = lexer();  // now == PLUS
+        UnaryExp();
+        tmp = peek();
+    }
+
+    printParseResult("MulExp");
+    return 1;
+}
+
+int AddExp() {
+    MulExp();
+    int tmp = peek();
+    while (tmp == PLUS || tmp == MINU) {
+        now = lexer();  // now == PLUS
+        MulExp();
+        tmp = peek();
+    }
+
+    printParseResult("AddExp");
+    return 1;
+}
+
+int ConstExp() {
+    AddExp();
+
+    printParseResult("ConstExp");
+    return 1;
+}
+
+int ConstInitVal() {
+    // now == ASSIGN
+    int tmp = peek();
+    if (tmp == LBRACE) {
+        now = lexer();
+        ConstInitVal();
+        now = lexer(); // now = RBRACE
+    } else {
+        ConstExp();
+    }
+
+    printParseResult("ConstInitVal");
+    return 1;
+}
+
+int ConstDef() {
+    now = lexer(); //now == INTTK || COMMA
+    now = lexer();
+    int tmp = peek();
+    if (tmp == LBRACK) {
+        now = lexer();
+        ConstExp();
+        now = lexer();
+        tmp = peek();
+        if (tmp == LBRACK) {
+            now = lexer();
+            ConstExp();
+            now = lexer();
+        }
+    }
+    if (tmp == ASSIGN) {
+        now = lexer();
+        ConstInitVal();
+    }
+
+    printParseResult("ConstDef");
+    return 1;
+}
+
+int ConstDecl() {
+    // now == INTTK
+
+    ConstDef();
+    int tmp = peek();
+    while (tmp == COMMA) {
+        ConstDef();
+        tmp = peek();
+    }
+
+    now = lexer(); // now == SEMICN
+
+    printParseResult("ConstDecl");
+    return 1;
+}
+
+int InitVal() {
+    // now == ASSIGN
+    int tmp = peek();
+    if (tmp == LBRACE) {
+        now = lexer();
+        InitVal();
+        tmp = peek();
+        while (tmp == COMMA) {
+            now = lexer();
+            InitVal();
+            tmp = peek();
+        }
+    }
+    if (tmp != LBRACE && tmp != RBRACE) {
+        Exp();
+    }
+
+//    tmp = peek();
+//    if (tmp != SEMICN) {
+//        now = lexer();  // now == RBRACE || COMMA
+//    }
+    if (tmp == RBRACE) {
+        now = lexer();
+    }
+    printParseResult("InitVal");
+    return 1;
+}
+
+int VarDef() {
+    // now == INTTK
+    now = lexer();  // now = IDENFR
+    int tmp = peek();
+    if (tmp == LBRACK) {
+        now = lexer();
+        ConstExp();
+        now = lexer();
+        tmp = peek();
+        if (tmp == LBRACK) {
+            now = lexer();
+            ConstExp();
+            now = lexer();
+        }
+    }
+    if (tmp == ASSIGN) {
+        now = lexer();
+        InitVal();
+    }
+
+    printParseResult("VarDef");
+    return 1;
+}
+
+int VarDecl() {
+    // now == INTTK
+    VarDef();
+    now = lexer();
+    while (now == COMMA) {
+        VarDef();
+        now = lexer();
+    }
+
+    if (now != SEMICN) {
+        now = lexer();// now == SEMICN
+    }
+
+    printParseResult("VarDecl");
+    return 1;
+}
+
+int FuncFParam() {
+    // now == INTTK
+    now = lexer();  // now == IDENFR
+    int tmp = peek();
+    if (tmp == LBRACK) {
+        now = lexer();  // now == LBRACK
+        now = lexer();  // now == RBRACK
+        tmp = peek();
+        if (tmp == LBRACK) {
+            now = lexer();  // now == LBRACK
+            ConstExp();
+            now = lexer();  // now == RBRACK
+        }
+    }
+
+    printParseResult("FuncFParam");
+    return 1;
+}
+
+int FuncFParams() {
+    int tmp = peek();   // tmp == INTTK || RPARENT
+    while (tmp != RPARENT) {
+        now = lexer();
+        FuncFParam();
+        tmp = peek();
+        if (tmp != RPARENT) {
+            now = lexer();
+        }
+    }
+    printParseResult("FuncFParams");
+    return 1;
+}
+
+int FuncDef() {
+    // now == LPARENT
+    FuncFParams();
+    now = lexer();  // now == RPARENT
+    Block();
+    printParseResult("FuncDef");
+    return 1;
+}
+
+int Stmt() {
+    int tmp = peek();
+    if (tmp == BREAKTK || tmp == CONTINUETK) {
+        now = lexer();
+        now = lexer();  // now == SEMICN
+    } else if (tmp == RETURNTK) {
+        now = lexer();
+        now = lexer();
+        if (now != SEMICN) {
+            Exp();
+        }
+    } else if (tmp == PRINTFTK) {
+        now = lexer(); // now == PRINTFTK
+        now = lexer(); // now == LPARENT
+        now = lexer(); // now == STRCON
+        tmp = peek();
+        if (tmp != RPARENT) {
+            now = lexer();
+            while (now == COMMA) {
+                Exp();
+                now = lexer();
+            }
+        } else {
+            now = lexer();
+        }
+        now = lexer(); // now == SEMICN
+    } else if (tmp == IFTK) {
+        now = lexer();  // now == IFTK
+        now = lexer(); // now == LPARENT
+        now = lexer();
+        Cond();
+        // now == RPARENT
+        now = lexer();
+        Stmt();
+        tmp = peek();
+        if (tmp == ELSETK) {
+            now = lexer(); // now == ELSETK
+            Stmt();
+        }
+    } else if (tmp == WHILETK) {
+        now = lexer();  // now == WHILETK
+        now = lexer(); // now == LPARENT
+        now = lexer();
+        Cond();
+        // now == RPARENT
+        now = lexer();
+        Stmt();
+    } else if (tmp == LBRACE) {
+        Block();
+    } else if (tmp == IDENFR) {
+        int ttmp = peeeek();
+        if (ttmp == LPARENT) {
+            Exp();
+        } else {
+            now = lexer();
+            LVal();
+            now = lexer(); // now == ASSIGN
+            tmp = peek();
+            if (tmp == GETINTTK) {
+                now = lexer(); // now == GETINTTK
+                now = lexer(); // now == LPARENT
+                now = lexer(); // now == RPARENT
+                now = lexer(); // now == SEMICN
+            } else {
+                Exp();
+            }
+        }
+    } else {
+        Exp();
+    }
+
+    tmp = peek();
+    if (tmp == SEMICN) {
+        now = lexer();
+    }
+
+    printParseResult("Stmt");
+    return 1;
+}
+
+int Block() {
+    now = lexer();
+    // now == LBRACE
+    int tmp = peek();
+    while (tmp != RBRACE) {
+        if (tmp == CONSTTK) {
+            now = lexer();
+            ConstDecl();
+        } else if (tmp == INTTK) {
+            now = lexer();
+            VarDecl();
+        } else {
+            Stmt();
+        }
+        tmp = peek();
+    }
+    now = lexer();  // now == RBRACE
+
+    printParseResult("Block");
+    return 1;
+}
+
+int MainFuncDef() {
+    // now == INTTK
+    now = lexer(); // now == MAINTK
+    now = lexer(); // now == LPARENT
+    now = lexer(); // now == RPARENT
+    Block();
+    // now == RBRACE
+    printParseResult("MainFuncDef");
+    return 1;
+}
+
+int FuncType() {
+    printParseResult("FuncType");
+    return 1;
+}
+
+int parse() {
+    while (readPos < inputLen) {
+        now = lexer();
+        if (now == CONSTTK) {
+            ConstDecl();
+        } else if (now == INTTK) {
+            int tmp = peek();
+            if (tmp == MAINTK) {
+                MainFuncDef();
+            } else if (tmp == IDENFR) {
+                //now = lexer(); // now == IDENFR
+                tmp = peeeek();
+                if (tmp == LPARENT) {
+                    FuncType();
+                    now = lexer(); // now == IDENFR
+                    now = lexer(); // now == (
+                    FuncDef();
+                } else {
+                    // now == INTTK
+                    VarDecl();
+                }
+            }
+        } else if (now == VOIDTK) {
+            FuncType();
+            now = lexer();  // now == IDENFR
+            now = lexer();  // now == (
+            FuncDef();
+        }
+    }
+    printParseResult("CompUnit");
+    return 1;
 }
