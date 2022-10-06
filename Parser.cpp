@@ -262,8 +262,6 @@ int ConstDecl() {
 }
 
 int InitVal() {
-    //TODO problem here
-    // now == ASSIGN
     int tmp = peek();
     if (tmp == LBRACE) {
         now = lexer();
