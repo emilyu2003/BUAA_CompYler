@@ -3,50 +3,24 @@ MAINTK main
 LPARENT (
 RPARENT )
 LBRACE {
-IFTK if
-LPARENT (
-IDENFR i
+IDENFR a
+<LVal>
+PLUS +
+IDENFR b
 <LVal>
 <PrimaryExp>
 <UnaryExp>
 <MulExp>
 <AddExp>
-<RelExp>
-NEQ !=
-IDENFR i
+PLUS +
+IDENFR c
 <LVal>
 <PrimaryExp>
 <UnaryExp>
 <MulExp>
 <AddExp>
-<RelExp>
-EQL ==
-IDENFR i
-<LVal>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-LEQ <=
-MINU -
-<UnaryOp>
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<RelExp>
-<EqExp>
-<LAndExp>
-<LOrExp>
-<Cond>
-RPARENT )
-LBRACE {
-RBRACE }
-<Block>
-<Stmt>
+<Exp>
+SEMICN ;
 <Stmt>
 RBRACE }
 <Block>

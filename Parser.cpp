@@ -23,6 +23,7 @@ int RelExp() {
     AddExp();
     int tmp = peek();
     while (tmp == LEQ || tmp == GEQ || tmp == LSS || tmp == GRE) {
+        printParseResult("RelExp");
         now = lexer();
         AddExp();
         tmp = peek();
@@ -36,6 +37,7 @@ int EqExp() {
     RelExp();
     int tmp = peek();
     while (tmp == EQL || tmp == NEQ) {
+        printParseResult("EqExp");
         now = lexer();
         RelExp();
         tmp = peek();
@@ -49,6 +51,7 @@ int LAndExp() {
     EqExp();
     int tmp = peek();
     while (tmp == AND) {
+        printParseResult("LAndExp");
         now = lexer();
         EqExp();
         tmp = peek();
@@ -62,6 +65,7 @@ int LOrExp() {
     LAndExp();
     int tmp = peek();
     while (tmp == OR) {
+        printParseResult("LOrExp");
         now = lexer();
         LAndExp();
         tmp = peek();
@@ -177,6 +181,7 @@ int MulExp() {
     UnaryExp();
     int tmp = peek();
     while (tmp == MULT || tmp == DIV || tmp == MOD) {
+        printParseResult("MulExp");
         now = lexer();  // now == PLUS
         UnaryExp();
         tmp = peek();
@@ -190,6 +195,7 @@ int AddExp() {
     MulExp();
     int tmp = peek();
     while (tmp == PLUS || tmp == MINU) {
+        printParseResult("AddExp");
         now = lexer();  // now == PLUS || MINU
         MulExp();
         tmp = peek();
@@ -212,9 +218,19 @@ int ConstInitVal() {
     if (tmp == LBRACE) {
         now = lexer();
         ConstInitVal();
-        now = lexer(); // now = RBRACE
-    } else {
+        tmp = peek();
+        while (tmp == COMMA) {
+            now = lexer();
+            ConstInitVal();
+            tmp = peek();
+        }
+    }
+    if (tmp != LBRACE && tmp != RBRACE) {
         ConstExp();
+    }
+    
+    if (tmp == RBRACE) {
+        now = lexer();
     }
 
     printParseResult("ConstInitVal");
@@ -236,6 +252,7 @@ int ConstDef() {
             now = lexer();
         }
     }
+    tmp = peek();
     if (tmp == ASSIGN) {
         now = lexer();
         ConstInitVal();
