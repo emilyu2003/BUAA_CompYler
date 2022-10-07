@@ -90,12 +90,32 @@ int peeeek() {
     return ans;
 }
 
+int isLVal() {
+    int tmpPos = readPos;
+    int tmpLine = lineNum;
+    int ans = 0;
+    printFlag = 0;
+    int k = lexer();
+    while(k != SEMICN) {
+        if(k == ASSIGN) {
+            ans = 1;
+            break;
+        }
+        k = lexer();
+    }
+    printFlag = 1;
+    readPos = tmpPos;
+    lineNum = tmpLine;
+    return ans;
+}
+
 int lexer() {
     int type = 0;
     string str;
 
     // read blank lines
-    while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
+    while (readPos < inputLen &&
+           (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
         readPos++;
         if (inputCode[readPos] == '\n') {
             lineNum++;
@@ -131,7 +151,8 @@ int lexer() {
             break;
         }
         // read blank lines
-        while (readPos < inputLen && (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
+        while (readPos < inputLen &&
+               (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
             readPos++;
             if (inputCode[readPos] == '\n') {
                 lineNum++;

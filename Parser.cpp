@@ -95,7 +95,10 @@ int LVal() {
         int tmp = peek();
         if (tmp != LBRACK) break;
         now = lexer();      // now = LBRACK
-        Exp();
+        tmp = peek();
+        if (tmp != RBRACK) {
+            Exp();
+        }
         now = lexer();      // now = RBRACK
         if (now != RBRACK) break;
     }
@@ -112,6 +115,10 @@ int Number() {
 
 int FuncRParams() {
     int tmp = peek();
+    if (tmp == RPARENT) {
+        //now = lexer();
+        return 1;
+    }
     while (tmp != RPARENT) {
         Exp();
         tmp = peek();
@@ -128,6 +135,11 @@ int PrimaryExp() {
     int tmp = peek();
     if (tmp == LPARENT) {
         now = lexer();
+        tmp = peek();
+        if (tmp == RPARENT) {
+            now = lexer();
+            return 1;
+        }
         Exp();
         now = lexer();  // now == RPARENT
     } else {
@@ -217,18 +229,21 @@ int ConstInitVal() {
     int tmp = peek();
     if (tmp == LBRACE) {
         now = lexer();
-        ConstInitVal();
         tmp = peek();
-        while (tmp == COMMA) {
-            now = lexer();
+        if (tmp != RBRACE) {
             ConstInitVal();
             tmp = peek();
+            while (tmp == COMMA) {
+                now = lexer();
+                ConstInitVal();
+                tmp = peek();
+            }
         }
     }
     if (tmp != LBRACE && tmp != RBRACE) {
         ConstExp();
     }
-    
+
     if (tmp == RBRACE) {
         now = lexer();
     }
@@ -368,6 +383,10 @@ int FuncFParam() {
 
 int FuncFParams() {
     int tmp = peek();   // tmp == INTTK || RPARENT
+    if (tmp == RPARENT) {
+        //now = lexer();
+        return 1;
+    }
     while (tmp != RPARENT) {
         now = lexer();
         FuncFParam();
@@ -397,8 +416,13 @@ int Stmt() {
     } else if (tmp == RETURNTK) {
         now = lexer();
         //now = lexer();
-        if (now != SEMICN) {
+        tmp = peek();
+        if (tmp != SEMICN) {
             Exp();
+        }
+        tmp = peek();
+        if (tmp == SEMICN) {
+            now = lexer();
         }
     } else if (tmp == PRINTFTK) {
         now = lexer(); // now == PRINTFTK
@@ -440,10 +464,10 @@ int Stmt() {
         Block();
     } else if (tmp == IDENFR) {
         int ttmp = peeeek();
-        if (ttmp == LPARENT) {
+        if (!isLVal()) {
             Exp();
         } else {
-            now = lexer();
+            now = lexer();  //IDENFR
             LVal();
             now = lexer(); // now == ASSIGN
             tmp = peek();
@@ -451,18 +475,24 @@ int Stmt() {
                 now = lexer(); // now == GETINTTK
                 now = lexer(); // now == LPARENT
                 now = lexer(); // now == RPARENT
-                now = lexer(); // now == SEMICN
+                //now = lexer(); // now == SEMICN
             } else {
                 Exp();
             }
         }
+        tmp = peek();
+        if (tmp == SEMICN) {
+            now = lexer();
+        }
     } else {
-        Exp();
-    }
-
-    tmp = peek();
-    if (tmp == SEMICN) {
-        now = lexer();
+        tmp = peek();
+        if (tmp != SEMICN) {
+            Exp();
+        }
+        tmp = peek();
+        if (tmp == SEMICN) {
+            now = lexer();
+        }
     }
 
     printParseResult("Stmt");

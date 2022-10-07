@@ -3,23 +3,34 @@ MAINTK main
 LPARENT (
 RPARENT )
 LBRACE {
-IDENFR a
+IDENFR seed
 <LVal>
-PLUS +
-IDENFR b
-<LVal>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-PLUS +
-IDENFR c
-<LVal>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
+ASSIGN =
+GETINTTK getint
+LPARENT (
+RPARENT )
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
+SEMICN ;
+<Stmt>
 SEMICN ;
 <Stmt>
 RBRACE }

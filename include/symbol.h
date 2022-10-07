@@ -49,6 +49,8 @@ int peek();
 
 int peeeek();
 
+int isLVal();
+
 void printSymbol(int type, std::string str);
 
 #endif
