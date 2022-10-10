@@ -96,8 +96,8 @@ int isLVal() {
     int ans = 0;
     printFlag = 0;
     int k = lexer();
-    while(k != SEMICN) {
-        if(k == ASSIGN) {
+    while (k != SEMICN) {
+        if (k == ASSIGN) {
             ans = 1;
             break;
         }
@@ -226,12 +226,38 @@ int lexer() {
 
     readPos++;
     // print and return
-    if (FormatString.count(str)) {
+
+    int printLower = 0;
+    if (type == IDENFR) {
+        string tmpStr = str;
+        for (int i = 0; i < str.size(); i++) {
+            if (isalpha(str[i])) {
+                tmpStr[i] = tolower(str[i]);
+            }
+        }
+        if (FormatString.count(tmpStr)) {
+            type = FormatString[tmpStr];
+            printLower = 1;
+        }
+    } else if (FormatString.count(str)) {
         type = FormatString[str];
     } else if (type == 0) {
         return -1;
     }
-    if (printFlag) printSymbol(type, str);
+
+    if (printFlag) {
+        if (printLower) {
+            string tmpStr = str;
+            for (int i = 0; i < str.size(); i++) {
+                if (isalpha(str[i])) {
+                    tmpStr[i] = tolower(str[i]);
+                }
+            }
+            printSymbol(type, tmpStr);
+        } else {
+            printSymbol(type, str);
+        }
+    }
     return type;
 }
 

@@ -1,39 +1,28 @@
 INTTK int
-MAINTK main
+<FuncType>
+IDENFR sum
 LPARENT (
+INTTK int
+IDENFR x
+<FuncFParam>
+COMMA ,
+INTTK int
+IDENFR y
+<FuncFParam>
+<FuncFParams>
 RPARENT )
 LBRACE {
-IDENFR seed
-<LVal>
-ASSIGN =
-GETINTTK getint
-LPARENT (
-RPARENT )
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
-SEMICN ;
-<Stmt>
+RETURNTK return
+INTCON 0
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
 SEMICN ;
 <Stmt>
 RBRACE }
 <Block>
-<MainFuncDef>
+<FuncDef>
 <CompUnit>

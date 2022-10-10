@@ -1,3 +1,4 @@
-int main() {
-	seed = getint();;;;;;;;;;;;
+iNt sum(Int x, INt y) {
+
+    retUrn 0;
 }
