@@ -13,9 +13,10 @@
 using namespace std;
 
 string inputCode;
-int readPos = 0;
-int inputLen;
+int readPos = 0, lexerPos = 0;
+int inputLen, lexerLen = 0;
 char line[500];
+Lexer lexerOutput[1000005];
 
 int main() {
     freopen("testfile.txt", "r", stdin);
@@ -32,6 +33,10 @@ int main() {
     }
     inputLen = inputCode.size();
     initLexer();
+    while (readPos < inputLen) {
+        lexerOutput[lexerLen++] = lexer();
+    }
+    lexerLen--;
     parse();
 
     return 0;

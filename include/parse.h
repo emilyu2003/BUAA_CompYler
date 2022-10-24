@@ -1,16 +1,17 @@
 #ifndef _PARSE_H
 #define _PARSE_H
 #include <string>
+#include "IdentTable.h"
 
 int parse();
 void printParseResult(const std::string& s);
-int RelExp(int end);
-int EqExp(int end);
-int LAndExp(int end);
-int LOrExp(int end);
-int Exp(int end);
-int Cond(int end);
-int LVal(int end);
+int RelExp();
+int EqExp();
+int LAndExp();
+int LOrExp();
+int Exp();
+int Cond();
+int LVal();
 int Number();
 int FuncRParams();
 int FuncType();
@@ -26,9 +27,9 @@ int ConstDecl();
 int InitVal();
 int VarDef();
 int VarDecl();
-int FuncFParam();
-int FuncFParams();
-int FuncDef();
+IDENT FuncFParam();
+int FuncFParams(int type, std::string str);
+int FuncDef(int type, std::string str);
 int Stmt();
 int Block();
 int MainFuncDef();

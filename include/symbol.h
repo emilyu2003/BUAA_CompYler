@@ -39,17 +39,33 @@
 #define RBRACK      36
 #define LBRACE      37
 #define RBRACE      38
+
 #include <string>
+
+
+struct Lexer {
+    int type;
+    std::string str;
+    int line;   // lineNum
+};
 
 void initLexer();
 
-int lexer();
+int getSym();
+
+Lexer lexer();
 
 int peek();
 
 int peeeek();
 
 int isLVal();
+
+int getErrorLine();
+
+int getInt();
+
+std::string getStr();
 
 void printSymbol(int type, std::string str);
 

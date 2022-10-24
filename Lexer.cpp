@@ -12,9 +12,7 @@
 using namespace std;
 
 int lineNum;
-unordered_map<string, int> Ident;
 unordered_map<string, int> FormatString;
-int printFlag = 1;
 
 string symbol[40] = {
         "IDENFR", "INTCON", "STRCON", "MAINTK", "CONSTTK", "INTTK", "BREAKTK",
@@ -67,49 +65,46 @@ void initLexer() {
 }
 
 int peek() {
-    int tmpPos = readPos;
-    int tmpLine = lineNum;
-    printFlag = 0;
-    int ans = lexer();
-    printFlag = 1;
-    readPos = tmpPos;
-    lineNum = tmpLine;
-    return ans;
+    return lexerOutput[lexerPos].type;
 }
 
 int peeeek() {
-    int tmpPos = readPos;
-    int tmpLine = lineNum;
-    int ans;
-    printFlag = 0;
-    ans = lexer();
-    ans = lexer();
-    printFlag = 1;
-    readPos = tmpPos;
-    lineNum = tmpLine;
-    return ans;
+    return lexerOutput[lexerPos + 1].type;
+}
+
+int getSym() {
+    printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
+    return lexerOutput[lexerPos++].type;
+}
+
+int getErrorLine() {
+    return lexerOutput[lexerPos-1].line;
+}
+
+string getStr() {
+    return lexerOutput[lexerPos-1].str;
+}
+
+int getInt() {
+    return stoi(lexerOutput[lexerPos-1].str);
 }
 
 int isLVal() {
-    int tmpPos = readPos;
-    int tmpLine = lineNum;
-    int ans = 0;
-    printFlag = 0;
-    int k = lexer();
-    while(k != SEMICN) {
-        if(k == ASSIGN) {
-            ans = 1;
+    int flag = 0;
+    for (int i = 0;; i++) {
+        int k = lexerPos + i;
+        if (k > lexerLen) break;
+        if (lexerOutput[k].type == ASSIGN) {
+            flag = 1;
+        }
+        if (lexerOutput[k].type == SEMICN) {
             break;
         }
-        k = lexer();
     }
-    printFlag = 1;
-    readPos = tmpPos;
-    lineNum = tmpLine;
-    return ans;
+    return flag;
 }
 
-int lexer() {
+Lexer lexer() {
     int type = 0;
     string str;
 
@@ -124,7 +119,7 @@ int lexer() {
     // extract // and /**/
     while (inputCode[readPos] == '/') {
         if (readPos + 1 == inputLen) {
-            return -1;
+            // return -1;
         }
         if (inputCode[readPos + 1] == '/') {
             while (readPos < inputLen && inputCode[readPos] != '\n') {
@@ -145,7 +140,7 @@ int lexer() {
                 inputCode[readPos] == '*' && inputCode[readPos + 1] == '/') {
                 readPos += 2;
             } else {
-                return -1;
+                // return -1;
             }
         } else {
             break;
@@ -169,7 +164,7 @@ int lexer() {
             readPos++;
         }
         if (readPos >= inputLen || inputCode[readPos] != '"') {
-            return -1;
+            // return -1;
         }
         str += inputCode[readPos];
         type = STRCON;
@@ -211,7 +206,7 @@ int lexer() {
         if (readPos + 1 < inputLen && inputCode[readPos + 1] == str[0]) {
             str += inputCode[readPos + 1];
         } else {
-            return -1;
+            // return -1;
         }
         readPos++;
     }
@@ -229,10 +224,11 @@ int lexer() {
     if (FormatString.count(str)) {
         type = FormatString[str];
     } else if (type == 0) {
-        return -1;
+        /// return -1;
     }
-    if (printFlag) printSymbol(type, str);
-    return type;
+    // printSymbol(type, str);
+    Lexer tmpLexer = {type, str, lineNum};
+    return tmpLexer;
 }
 
 void printSymbol(int type, string str) {

@@ -3,5 +3,5 @@ project(compYler)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(compYler main.cpp Lexer.cpp Parser.cpp)
+add_executable(compYler main.cpp Lexer.cpp Parser.cpp IdentTable.cpp)
 include_directories(./include)
