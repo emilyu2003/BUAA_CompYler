@@ -20,7 +20,7 @@ Lexer lexerOutput[1000005];
 
 int main() {
     freopen("testfile.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
+    freopen("error.txt", "w", stdout);
 
     string tmp;
     while (fgets(line, 500, stdin) != NULL) {

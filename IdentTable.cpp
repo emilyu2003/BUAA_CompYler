@@ -39,6 +39,16 @@ void appendARR2(string name) {
     identTable.push_back(tmp);
 }
 
+void appendConstARR1(string name) {
+    IDENT tmp = {name, CONST_ARR_T_D1, {0, 0}};
+    identTable.push_back(tmp);
+}
+
+void appendConstARR2(string name) {
+    IDENT tmp = {name, CONST_ARR_T_D2, {0, 0}};
+    identTable.push_back(tmp);
+}
+
 void appendFUNC_INT(string name, vector<IDENT> params) {
     IDENT tmp = {name, FUNC_T_INT, {0, 0}, (int) params.size()};
     identTable.push_back(tmp);
@@ -75,10 +85,19 @@ bool ifExist(string name) {
 }
 
 bool ifConst(string name) {
-    if (identTableCnt.empty()) return false;
-    for (int i = identTableCnt.back(); i < identTable.size(); i++) {
+    //printIdentTable();
+    if (!identTableCnt.empty()) {
+        for (int i = identTableCnt.back(); i < identTable.size(); i++) {
+            if (identTable[i].name == name) {
+                return identTable[i].type == CONST_T || identTable[i].type == CONST_ARR_T_D1 ||
+                       identTable[i].type == CONST_ARR_T_D1;
+            }
+        }
+    }
+    for (int i = identTable.size() - 1; i >= 0; i--) {
         if (identTable[i].name == name) {
-            return identTable[i].type == CONST_T;
+            return identTable[i].type == CONST_T || identTable[i].type == CONST_ARR_T_D1 ||
+                   identTable[i].type == CONST_ARR_T_D1;
         }
     }
     return false;
@@ -107,17 +126,17 @@ bool ifStrConCntCoordinate(string str, int x) {
     return cnt == x;
 }
 
-bool ifParamTypeCoordinate(vector<IDENT> params) {
+bool ifParamTypeCoordinate(vector<int> params) {
     if (identTableCnt.empty()) return true;
     for (int i = identTableCnt.back(); i < identTable.size(); i++) {
-        if (identTable[i].type != params[i - identTableCnt.back()].type) {
+        if (identTable[i].type != params[i - identTableCnt.back()]) {
             return false;
         }
     }
     return true;
 }
 
-bool ifParamCntCoordinate(vector<IDENT> params) {
+bool ifParamCntCoordinate(vector<int> params) {
     int cnt = identTable.size() - identTableCnt.back();
     return cnt == params.size();
 }
@@ -139,8 +158,8 @@ void enterBlock() {
     identTableCnt.push_back(identTable.size());
 }
 
-void throwError(int code) {
-    printf("%c %d\n", 'a' - code - 1, getErrorLine());
+void throwError(int code, int line) {
+    printf("%d %c\n", line + 1, 'a' - code - 1);
 }
 
 IDENT getIdent(std::string name) {

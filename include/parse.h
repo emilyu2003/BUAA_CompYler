@@ -13,7 +13,7 @@ int Exp();
 int Cond();
 int LVal();
 int Number();
-int FuncRParams();
+std::vector<int> FuncRParams();
 int FuncType();
 int PrimaryExp();
 int UnaryOp();

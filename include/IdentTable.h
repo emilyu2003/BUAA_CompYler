@@ -12,6 +12,8 @@
 #define FUNC_T_INT 5
 #define FUNC_T_VOID 6
 #define CONST_T 7
+#define CONST_ARR_T_D1 8
+#define CONST_ARR_T_D2 8
 
 #define ERROR_A -1
 #define ERROR_B -2
@@ -52,6 +54,10 @@ void appendARR1(std::string name);
 
 void appendARR2(std::string name);
 
+void appendConstARR1(std::string name);
+
+void appendConstARR2(std::string name);
+
 bool ifReDefine(std::string name);
 
 bool ifExist(std::string name);
@@ -62,15 +68,15 @@ bool ifFormatLegal(std::string str);
 
 bool ifStrConCntCoordinate(std::string str, int x);
 
-bool ifParamTypeCoordinate(std::vector<IDENT> a);
+bool ifParamTypeCoordinate(std::vector<int> a);
 
-bool ifParamCntCoordinate(std::vector<IDENT> a);
+bool ifParamCntCoordinate(std::vector<int> a);
 
 void endBlock();
 
 void enterBlock();
 
-void throwError(int code);
+void throwError(int code, int line);
 
 IDENT getIdent(std::string str);
 

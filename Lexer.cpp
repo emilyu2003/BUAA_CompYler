@@ -73,20 +73,21 @@ int peeeek() {
 }
 
 int getSym() {
+    //printf("%d : ", lexerOutput[lexerPos].line);
     printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
     return lexerOutput[lexerPos++].type;
 }
 
 int getErrorLine() {
-    return lexerOutput[lexerPos-1].line;
+    return lexerOutput[lexerPos - 1].line;
 }
 
 string getStr() {
-    return lexerOutput[lexerPos-1].str;
+    return lexerOutput[lexerPos - 1].str;
 }
 
 int getInt() {
-    return stoi(lexerOutput[lexerPos-1].str);
+    return stoi(lexerOutput[lexerPos - 1].str);
 }
 
 int isLVal() {
@@ -111,10 +112,10 @@ Lexer lexer() {
     // read blank lines
     while (readPos < inputLen &&
            (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
-        readPos++;
         if (inputCode[readPos] == '\n') {
             lineNum++;
         }
+        readPos++;
     }
     // extract // and /**/
     while (inputCode[readPos] == '/') {
@@ -126,6 +127,7 @@ Lexer lexer() {
                 readPos++;
             }
             if (inputCode[readPos] == '\n') {
+                lineNum++;
                 readPos++;
             } else {
                 break;
@@ -148,10 +150,10 @@ Lexer lexer() {
         // read blank lines
         while (readPos < inputLen &&
                (inputCode[readPos] == '\n' || inputCode[readPos] == ' ' || inputCode[readPos] == '\t')) {
-            readPos++;
             if (inputCode[readPos] == '\n') {
                 lineNum++;
             }
+            readPos++;
         }
     }
 
@@ -232,5 +234,5 @@ Lexer lexer() {
 }
 
 void printSymbol(int type, string str) {
-    cout << symbol[type - 1] << " " << str << endl;
+    //cout << symbol[type - 1] << " " << str << endl;
 }

@@ -14,13 +14,13 @@
 using namespace std;
 
 int now;
-bool haveReturn = false;
-bool isFunc = false;
+bool funcVoid = false;
+int isFunc = 0;
 int isWhile = 0;
 vector<IDENT> RParams;
 
 void printParseResult(const string &s) {
-    cout << "<" << s << ">" << endl;
+    //cout << "<" << s << ">" << endl;
 }
 
 /* end 默认包括; */
@@ -81,10 +81,10 @@ int LOrExp() {
 }
 
 int Exp() {
-    AddExp();
+    int rtNum = AddExp();
 
     printParseResult("Exp");
-    return 1;
+    return rtNum;
 }
 
 int Cond() {
@@ -97,57 +97,98 @@ int Cond() {
 int LVal() {
     // now = IDENFR
     string name = getStr();
+    IDENT tmpLVal;
     if (!ifExist(name)) {
-        throwError(ERROR_C);
+        throwError(ERROR_C, getErrorLine());
+    } else {
+        tmpLVal = getIdent(name);
     }
-    int rtNum = 1;
+
+    int rtNum = INT_T;
+    bool flag = false;
     if (ifConst(getStr())) {
-        rtNum = ERROR_H;
+        flag = true;
     }
-    for (int i = 0; i < 2; i++) {
-        int tmp = peek();
-        if (tmp != LBRACK) break;
-        now = getSym();      // now = LBRACK
+    int dimension = 0;
+
+    int tmp = peek();
+    if (tmp == LBRACK) {
+        now = getSym();
+        Exp();
         tmp = peek();
-        if (tmp == ASSIGN) {
-            throwError(ERROR_K);
-            break;
-        }
+        dimension++;
         if (tmp != RBRACK) {
-            Exp();
+            throwError(ERROR_K, getErrorLine());
+        } else {
+            now = getSym(); // now == RBRACK
         }
-        now = getSym();      // now = RBRACK
-        if (now != RBRACK) break;
+        tmp = peek();
+        if (tmp == LBRACK) {
+            now = getSym();
+            Exp();
+            tmp = peek();
+            dimension++;
+            if (tmp != RBRACK) {
+                throwError(ERROR_K, getErrorLine());
+            } else {
+                now = getSym(); // now == RBRACK
+            }
+        }
     }
+
     printParseResult("LVal");
+    if (flag) {
+        rtNum = ERROR_H;
+    } else {
+        int dim = tmpLVal.type;
+        if (dim == INTTK) {
+            if (dimension == 0) rtNum = INTTK;
+            else {
+                rtNum = ERROR_E;
+            }
+        } else if (dim == ARRAY_T_D1) {
+            if (dimension == 0) rtNum = ARRAY_T_D1;
+            else if (dimension == 1) rtNum = INTTK;
+            else {
+                rtNum = ERROR_E;
+            }
+        } else if (dim == ARRAY_T_D2) {
+            if (dimension == 0) rtNum = ARRAY_T_D2;
+            else if (dimension == 1) rtNum = ARRAY_T_D1;
+            else rtNum = INTTK;
+        }
+    }
     return rtNum;
 }
 
 int Number() {
     now = getSym();
     printParseResult("Number");
-    return 1;
+    return INT_T;
 }
 
-int FuncRParams() {
+
+vector<int> FuncRParams() {
+    vector<int> FuncRParamsType;
     int tmp = peek();   // tmp == IDENFR
     int paramCnt = 0;
-    while (tmp != RPARENT) {    // TODO dont know how to get type of RPARAMS
-        Exp();
+    while (tmp == IDENFR || tmp == LPARENT || tmp == PLUS || tmp == MINU ||
+           tmp == INTCON) {    // TODO dont know how to get type of RPARAMS
+        FuncRParamsType.push_back(Exp());
         tmp = peek();
         if (tmp == COMMA) {
             now = getSym();  // now == COMMA
         }
-        // TODO dont know how to get missing )
         paramCnt++;
         tmp = peek();
     }
 
     printParseResult("FuncRParams");
-    return paramCnt;
+    return FuncRParamsType;
 }
 
 int PrimaryExp() {
+    int rtNum = INT_T;
     int tmp = peek();
     if (tmp == LPARENT) {
         now = getSym();
@@ -156,15 +197,15 @@ int PrimaryExp() {
             now = getSym();
             return 1;
         }
-        Exp();
+        rtNum = Exp();
         now = getSym();  // now == RPARENT
     } else {
         if (tmp == INTCON) {
-            Number();
+            rtNum = Number();
         } else {
-            int rtNum = LVal();
+            rtNum = LVal();
             if (rtNum == ERROR_H) {
-                throwError(ERROR_H);
+                throwError(ERROR_H, getErrorLine());
             }
         }
     }
@@ -181,69 +222,80 @@ int UnaryOp() {
 }
 
 int UnaryExp() {
+    int rtNum = INT_T;
     int tmp = peek();
     if (tmp == PLUS || tmp == MINU || tmp == NOT) {
         //now = getSym();
         UnaryOp();
-        UnaryExp();
+        rtNum = UnaryExp();
     } else {
         if (tmp == IDENFR) {
             now = getSym(); // IDENFR
             string name = getStr();
-            int line = getErrorLine();
+            int tmpLine = getErrorLine();
             if (!ifExist(name)) {
-                throwError(ERROR_C);
+                throwError(ERROR_C, getErrorLine());
             }
             tmp = peek();
             if (tmp == LPARENT) {
                 now = getSym(); // LPARENT
                 //now = getSym();
                 tmp = peek();
-                if (tmp != RPARENT) {   // TODO
-                    int paramCnt = FuncRParams();
+                vector<int> tmpParams;
+                if (tmp == IDENFR || tmp == LPARENT || tmp == PLUS || tmp == MINU || tmp == INTCON) {
+                    tmpParams = FuncRParams();
                 }
                 tmp = peek();
                 if (tmp == RPARENT) {
                     now = getSym(); // RPARENT
+                } else {
+                    throwError(ERROR_J,getErrorLine());
+                }
+                if (!ifParamCntCoordinate(tmpParams)) {
+                    throwError(ERROR_D, tmpLine);
+                } else if (!ifParamTypeCoordinate(tmpParams)) {
+                    throwError(ERROR_E, tmpLine);
                 }
             } else {
-                PrimaryExp();
+                rtNum = PrimaryExp();
             }
         } else {
-            PrimaryExp();
+            rtNum = PrimaryExp();
         }
     }
 
     printParseResult("UnaryExp");
-    return 1;
+    return rtNum;
 }
 
 int MulExp() {
-    UnaryExp();
+    int rtNum = UnaryExp();
     int tmp = peek();
     while (tmp == MULT || tmp == DIV || tmp == MOD) {
         printParseResult("MulExp");
         now = getSym();  // now == PLUS
         UnaryExp();
         tmp = peek();
+        rtNum = INT_T;
     }
 
     printParseResult("MulExp");
-    return 1;
+    return rtNum;
 }
 
 int AddExp() {
-    MulExp();
+    int rtNum = MulExp();
     int tmp = peek();
     while (tmp == PLUS || tmp == MINU) {
         printParseResult("AddExp");
         now = getSym();  // now == PLUS || MINU
         MulExp();
         tmp = peek();
+        rtNum = INT_T;
     }
 
     printParseResult("AddExp");
-    return 1;
+    return rtNum;
 }
 
 int ConstExp() {
@@ -285,6 +337,7 @@ int ConstDef() {
     now = getSym(); //now == INTTK || COMMA
     now = getSym();
     string name = getStr();
+    int tmpLine = getErrorLine();
     int tmp = peek();
     int dimension = 0;
     if (tmp == LBRACK) {
@@ -293,7 +346,7 @@ int ConstDef() {
         tmp = peek();
         dimension++;
         if (tmp != RBRACK) {
-            throwError(ERROR_K);
+            throwError(ERROR_K, getErrorLine());
         } else {
             now = getSym(); // now == RBRACK
         }
@@ -304,22 +357,10 @@ int ConstDef() {
             tmp = peek();
             dimension++;
             if (tmp != RBRACK) {
-                throwError(ERROR_K);
+                throwError(ERROR_K, getErrorLine());
             } else {
                 now = getSym(); // now == RBRACK
             }
-        }
-    }
-
-    if (ifReDefine(name)) {
-        throwError(ERROR_B);
-    } else {
-        if (dimension == 0) {
-            appendINT(name);
-        } else if (dimension == 1) {
-            appendARR1(name);
-        } else if (dimension == 2) {
-            appendARR2(name);
         }
     }
 
@@ -327,6 +368,18 @@ int ConstDef() {
     if (tmp == ASSIGN) {
         now = getSym();
         ConstInitVal();
+    }
+
+    if (ifReDefine(name)) {
+        throwError(ERROR_B, tmpLine);
+    } else {
+        if (dimension == 0) {
+            appendConst(name);
+        } else if (dimension == 1) {
+            appendConstARR1(name);
+        } else if (dimension == 2) {
+            appendConstARR2(name);
+        }
     }
 
     printParseResult("ConstDef");
@@ -345,7 +398,7 @@ int ConstDecl() {
 
     tmp = peek();
     if (tmp != SEMICN) {
-        throwError(ERROR_I);
+        throwError(ERROR_I, getErrorLine());
     } else {
         now = getSym(); // now == SEMICN
     }
@@ -385,6 +438,7 @@ int VarDef() {
     // now == INTTK
     now = getSym();  // now = IDENFR
     string name = getStr();
+    int tmpLine = getErrorLine();
     int tmp = peek();
     int dimension = 0;
     if (tmp == LBRACK) {
@@ -392,7 +446,7 @@ int VarDef() {
         ConstExp();
         tmp = peek();
         if (tmp != RBRACK) {
-            throwError(ERROR_K);
+            throwError(ERROR_K, getErrorLine());
         } else {
             now = getSym(); // now == RBRACK
         }
@@ -403,7 +457,7 @@ int VarDef() {
             ConstExp();
             tmp = peek();
             if (tmp != RBRACK) {
-                throwError(ERROR_K);
+                throwError(ERROR_K, getErrorLine());
             } else {
                 now = getSym(); // now == RBRACK
             }
@@ -411,8 +465,14 @@ int VarDef() {
         }
     }
 
+    tmp = peek();
+    if (tmp == ASSIGN) {
+        now = getSym();
+        InitVal();
+    }
+
     if (ifReDefine(name)) {
-        throwError(ERROR_B);
+        throwError(ERROR_B, tmpLine);
     } else {
         if (dimension == 0) {
             appendINT(name);
@@ -421,12 +481,6 @@ int VarDef() {
         } else if (dimension == 2) {
             appendARR2(name);
         }
-    }
-
-    tmp = peek();
-    if (tmp == ASSIGN) {
-        now = getSym();
-        InitVal();
     }
 
     printParseResult("VarDef");
@@ -443,7 +497,7 @@ int VarDecl() {
     }
 
     if (now != SEMICN) {
-        throwError(ERROR_I);
+        throwError(ERROR_I, getErrorLine());
     } else {
         // now == SEMICN
     }
@@ -457,7 +511,7 @@ IDENT FuncFParam() {
     now = getSym();  // now == IDENFR
     string name = getStr();
     if (ifReDefine(name)) {
-        throwError(ERROR_B);
+        throwError(ERROR_B, getErrorLine());
     }
     IDENT tmpIdent;
     int dimension;
@@ -467,7 +521,7 @@ IDENT FuncFParam() {
         now = getSym();  // now == LBRACK
         tmp = peek();
         if (tmp != RBRACK) {
-            throwError(ERROR_K);
+            throwError(ERROR_K, getErrorLine());
         } else {
             now = getSym(); // now == RBRACK
         }
@@ -478,7 +532,7 @@ IDENT FuncFParam() {
             ConstExp();
             tmp = peek();
             if (tmp != RBRACK) {
-                throwError(ERROR_K);
+                throwError(ERROR_K, getErrorLine());
             } else {
                 now = getSym(); // now == RBRACK
             }
@@ -507,7 +561,7 @@ int FuncFParams(int type, string name) {
         tmpParams.push_back(tmpIdent);
         tmp = peek();
         if (tmp == LBRACE) {
-            throwError(ERROR_J);
+            throwError(ERROR_J, getErrorLine());
             break;
         }
         if (tmp != RPARENT) {
@@ -526,7 +580,7 @@ int FuncFParams(int type, string name) {
 
 int FuncDef(int type, string name) {
     if (ifReDefine(name)) {
-        throwError(ERROR_B);
+        throwError(ERROR_B, getErrorLine());
     }
     // now == LPARENT
     int tmp = peek();
@@ -541,7 +595,7 @@ int FuncDef(int type, string name) {
         }
     }
     now = getSym();  // now == RPARENT
-    isFunc = true;
+    isFunc = 1;
     Block();
     printParseResult("FuncDef");
     return 1;
@@ -549,14 +603,15 @@ int FuncDef(int type, string name) {
 
 int Stmt() {
     int tmp = peek();
+    int tmpReturn = 1;
     if (tmp == BREAKTK || tmp == CONTINUETK) {
         if (isWhile == 0) {
-            throwError(ERROR_M);
+            throwError(ERROR_M, getErrorLine());
         }
         now = getSym();
         tmp = peek();
         if (tmp != SEMICN) {
-            throwError(ERROR_I);
+            throwError(ERROR_I, getErrorLine());
         } else {
             now = getSym();  // now == SEMICN
         }
@@ -565,27 +620,31 @@ int Stmt() {
         //now = getSym();
         tmp = peek();
         if (tmp == RBRACE) {
-            throwError(ERROR_I);
+            throwError(ERROR_I, getErrorLine());
         } else {
             if (tmp != SEMICN) {
-                haveReturn = true;
+                if (funcVoid) {
+                    throwError(ERROR_F, getErrorLine());
+                }
                 Exp();
             }
             tmp = peek();
             if (tmp == SEMICN) {
                 now = getSym();
             } else {
-                throwError(ERROR_I);
+                throwError(ERROR_I, getErrorLine());
             }
         }
+        tmpReturn = 2;
     } else if (tmp == PRINTFTK) {
         now = getSym(); // now == PRINTFTK
+        int tmpLine = getErrorLine();
         now = getSym(); // now == LPARENT
         now = getSym(); // now == STRCON
 
         string strCon = getStr();
         if (!ifFormatLegal(strCon)) {
-            throwError(ERROR_A);
+            throwError(ERROR_A, getErrorLine());
         }
 
         int expCnt = 0;
@@ -603,12 +662,12 @@ int Stmt() {
         }
 
         if (!ifStrConCntCoordinate(strCon, expCnt)) {
-            throwError(ERROR_L);
+            throwError(ERROR_L, tmpLine);
         }
 
         tmp = peek();
         if (tmp != SEMICN) {
-            throwError(ERROR_I);
+            throwError(ERROR_I, getErrorLine());
         } else {
             now = getSym(); // now == SEMICN
         }
@@ -643,7 +702,7 @@ int Stmt() {
             now = getSym();  //IDENFR
             int rtNum = LVal();
             if (rtNum == ERROR_H) {
-                throwError(ERROR_H);
+                throwError(ERROR_H, getErrorLine());
             }
             now = getSym(); // now == ASSIGN
             tmp = peek();
@@ -660,7 +719,7 @@ int Stmt() {
         if (tmp == SEMICN) {
             now = getSym();
         } else {
-            throwError(ERROR_I);
+            throwError(ERROR_I, getErrorLine());
         }
     } else {
         tmp = peek();
@@ -671,37 +730,43 @@ int Stmt() {
         if (tmp == SEMICN) {
             now = getSym();
         } else {
-            throwError(ERROR_I);
+            throwError(ERROR_I, getErrorLine());
         }
     }
 
     printParseResult("Stmt");
-    return 1;
+    return tmpReturn;
 }
 
 int Block() {
-    if (!isFunc) {
+    int tmpFunc = isFunc;
+    if (isFunc != 1) {
         enterBlock();
-    } else {
-        isFunc = false;
     }
+    isFunc = 0;
+
     now = getSym();
     // now == LBRACE
     int tmp = peek();
+    int last = 0;
     while (tmp != RBRACE) {
         if (tmp == CONSTTK) {
             now = getSym();
-            ConstDecl();
+            last = ConstDecl();
         } else if (tmp == INTTK) {
             now = getSym();
-            VarDecl();
+            last = VarDecl();
         } else {
-            Stmt();
+            last = Stmt();
         }
         tmp = peek();
     }
     now = getSym();  // now == RBRACE
 
+    if (tmpFunc && !funcVoid && last != 2) {
+        //printf("%d %d %d\n", tmpFunc, funcVoid, last);
+        throwError(ERROR_G, getErrorLine());
+    }
     endBlock();  // remove idents in this block
     printParseResult("Block");
     return 1;
@@ -712,6 +777,7 @@ int MainFuncDef() {
     now = getSym(); // now == MAINTK
     now = getSym(); // now == LPARENT
     now = getSym(); // now == RPARENT
+    isFunc = 2;
     Block();
     // now == RBRACE
     printParseResult("MainFuncDef");
@@ -732,11 +798,6 @@ int parse() {
             int tmp = peek();
             if (tmp == MAINTK) {
                 MainFuncDef();
-                if (!haveReturn) {
-                    throwError(ERROR_G);
-                } else {
-                    haveReturn = false;
-                }
             } else if (tmp == IDENFR) {
                 //now = getSym(); // now == IDENFR
                 tmp = peeeek();
@@ -746,11 +807,6 @@ int parse() {
                     string name = getStr();
                     now = getSym(); // now == (
                     FuncDef(INT_T, name);
-                    if (!haveReturn) {
-                        throwError(ERROR_G);
-                    } else {
-                        haveReturn = false;
-                    }
                 } else {
                     // now == INTTK
                     VarDecl();
@@ -761,11 +817,9 @@ int parse() {
             now = getSym();  // now == IDENFR
             string name = getStr();
             now = getSym();  // now == (
+            funcVoid = true;
             FuncDef(VOID_T, name);
-            if (haveReturn) {
-                throwError(ERROR_F);
-                haveReturn = false;
-            }
+            funcVoid = false;
         }
     }
     printParseResult("CompUnit");
