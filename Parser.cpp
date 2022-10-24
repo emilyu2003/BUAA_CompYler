@@ -399,6 +399,7 @@ int VarDef() {
         tmp = peek();
         dimension++;
         if (tmp == LBRACK) {
+            now = getSym();
             ConstExp();
             tmp = peek();
             if (tmp != RBRACK) {
