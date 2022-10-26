@@ -3,7 +3,7 @@
 #include <string>
 #include "IdentTable.h"
 
-int parse();
+int parseAndErr();
 void printParseResult(const std::string& s);
 int RelExp();
 int EqExp();

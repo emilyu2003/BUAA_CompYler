@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "symbol.h"
 #include "base.h"
+#include <fstream>
 
 using namespace std;
 
@@ -234,5 +235,8 @@ Lexer lexer() {
 }
 
 void printSymbol(int type, string str) {
-    //cout << symbol[type - 1] << " " << str << endl;
+    string output = symbol[type - 1] + " " + str + "\n";
+    FILE *f = fopen("output.txt", "a");
+    fprintf(f, "%s", output.c_str());
+    fclose(f);
 }

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include<fstream>
 #include "symbol.h"
-#include "parse.h"
+#include "parseAndErr.h"
 #include "base.h"
 
 using namespace std;
@@ -20,8 +20,14 @@ Lexer lexerOutput[1000005];
 
 int main() {
     freopen("testfile.txt", "r", stdin);
-    freopen("error.txt", "w", stdout);
 
+    //clear file
+    FILE *f = fopen("output.txt", "w");
+    fclose(f);
+    f = fopen("error.txt", "w");
+    fclose(f);
+
+    // read code
     string tmp;
     while (fgets(line, 500, stdin) != NULL) {
         tmp.clear();
@@ -32,12 +38,16 @@ int main() {
         inputCode += tmp;
     }
     inputLen = inputCode.size();
+
+    // lexer
     initLexer();
     while (readPos < inputLen) {
         lexerOutput[lexerLen++] = lexer();
     }
     lexerLen--;
-    parse();
+
+    // parser
+    parseAndErr();
 
     return 0;
 }

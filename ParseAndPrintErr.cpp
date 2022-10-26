@@ -2,7 +2,7 @@
 // Created by emilyu on 2022/9/27.
 //
 #include "symbol.h"
-#include "parse.h"
+#include "parseAndErr.h"
 #include "base.h"
 #include "IdentTable.h"
 #include <cstdio>
@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -20,7 +21,10 @@ int isWhile = 0;
 vector<IDENT> RParams;
 
 void printParseResult(const string &s) {
-    //cout << "<" << s << ">" << endl;
+    string output = "<" + s + ">";
+    FILE *f = fopen("output.txt", "a");
+    fprintf(f, "%s", output.c_str());
+    fclose(f);
 }
 
 /* end 默认包括; */
@@ -790,7 +794,7 @@ int FuncType() {
     return 1;
 }
 
-int parse() {
+int parseAndErr() {
     while (lexerPos < lexerLen) {
         now = getSym();
         if (now == CONSTTK) {

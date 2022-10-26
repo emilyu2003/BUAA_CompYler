@@ -182,7 +182,9 @@ int lastLine = -1;
 
 void throwError(int code, int line) {
     if (line == lastLine) return;
-    printf("%d %c\n", line + 1, 'a' - code - 1);
+    FILE *f = fopen("error.txt", "a");
+    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
+    fclose(f);
     lastLine = line;
 }
 
