@@ -42,13 +42,15 @@ struct IDENT {
 
 void appendINT(std::string name);
 
-void appendVOID(std::string name);
-
 void appendConst(std::string name);
 
-void appendFUNC_INT(std::string name, std::vector<IDENT> tmp);
+void appendFUNC_INT(std::string name);
 
-void appendFUNC_VOID(std::string name, std::vector<IDENT> tmp);
+void appendFUNC_VOID(std::string name);
+
+//void updateFUNC_INT(std::string name, std::vector<IDENT> tmp);
+
+//void updateFUNC_VOID(std::string name, std::vector<IDENT> tmp);
 
 void appendARR1(std::string name);
 
@@ -57,6 +59,8 @@ void appendARR2(std::string name);
 void appendConstARR1(std::string name);
 
 void appendConstARR2(std::string name);
+
+void appendIdent(IDENT ident);
 
 bool ifReDefine(std::string name);
 

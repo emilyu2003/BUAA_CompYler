@@ -49,29 +49,50 @@ void appendConstARR2(string name) {
     identTable.push_back(tmp);
 }
 
-void appendFUNC_INT(string name, vector<IDENT> params) {
-    IDENT tmp = {name, FUNC_T_INT, {0, 0}, (int) params.size()};
+void appendFUNC_INT(string name) {
+    IDENT tmp = {name, FUNC_T_INT, {0, 0}};
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
-    for (int i = 0; i < params.size(); i++) {
-        identTable.push_back(params[i]);
-    }
     //printIdentTable();
 }
 
-void appendFUNC_VOID(string name, vector<IDENT> params) {
-    IDENT tmp = {name, FUNC_T_VOID, {0, 0}, (int) params.size()};
+//void updateFUNC_INT(string name, vector<IDENT> params) {
+//    for (int i = 0; i < identTable.size(); i++) {
+//        if (identTable[i].name == name && identTable[i].type == FUNC_T_INT) {
+//            identTable[i].paramLen = params.size();
+//        }
+//    }
+//    for (int i = 0; i < params.size(); i++) {
+//        identTable.push_back(params[i]);
+//    }
+//}
+
+void appendFUNC_VOID(string name) {
+    IDENT tmp = {name, FUNC_T_VOID, {0, 0}};
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
-    for (int i = 0; i < params.size(); i++) {
-        identTable.push_back(params[i]);
-    }
     //printIdentTable();
+}
+
+//void updateFUNC_VOID(string name, vector<IDENT> params) {
+//    for (int i = 0; i < identTable.size(); i++) {
+//        if (identTable[i].name == name && identTable[i].type == FUNC_T_VOID) {
+//            identTable[i].paramLen = params.size();
+//        }
+//    }
+//    for (int i = 0; i < params.size(); i++) {
+//        identTable.push_back(params[i]);
+//    }
+//}
+
+void appendIdent(IDENT ident) {
+    identTable.push_back(ident);
 }
 
 bool ifReDefine(string name) {
-    if (identTableCnt.empty()) return false;
-    for (int i = identTableCnt.back(); i < identTable.size(); i++) {
+    int st = 0;
+    if (!identTableCnt.empty()) st = identTableCnt.back();
+    for (int i = st; i < identTable.size(); i++) {
         if (identTable[i].name == name) return true;
     }
     return false;
@@ -111,7 +132,7 @@ bool ifFormatLegal(string str) {
         if (str[i] == '%') {
             if ((i < str.size() - 2) && str[i + 1] == 'd') continue;
         }
-        if (str[i] == 32 || str[i] == 33 || (40 <= str[i] && str[i] <= 126)) continue;
+        if (str[i] != '\\' && (str[i] == 32 || str[i] == 33 || (40 <= str[i] && str[i] <= 126))) continue;
         return false;
     }
     return true;
@@ -127,7 +148,6 @@ bool ifStrConCntCoordinate(string str, int x) {
 }
 
 bool ifParamTypeCoordinate(vector<int> params) {
-    if (identTableCnt.empty()) return true;
     for (int i = identTableCnt.back(); i < identTable.size(); i++) {
         if (identTable[i].type != params[i - identTableCnt.back()]) {
             return false;
@@ -158,8 +178,12 @@ void enterBlock() {
     identTableCnt.push_back(identTable.size());
 }
 
+int lastLine = -1;
+
 void throwError(int code, int line) {
+    if (line == lastLine) return;
     printf("%d %c\n", line + 1, 'a' - code - 1);
+    lastLine = line;
 }
 
 IDENT getIdent(std::string name) {

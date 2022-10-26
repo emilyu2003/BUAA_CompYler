@@ -98,14 +98,15 @@ int LVal() {
     // now = IDENFR
     string name = getStr();
     IDENT tmpLVal;
+    int flag = 0;
     if (!ifExist(name)) {
         throwError(ERROR_C, getErrorLine());
+        //flag = 2;
     } else {
         tmpLVal = getIdent(name);
     }
 
     int rtNum = INT_T;
-    bool flag = false;
     if (ifConst(getStr())) {
         flag = true;
     }
@@ -137,6 +138,7 @@ int LVal() {
     }
 
     printParseResult("LVal");
+    if (flag == 2) return rtNum;
     if (flag) {
         rtNum = ERROR_H;
     } else {
@@ -249,7 +251,7 @@ int UnaryExp() {
                 if (tmp == RPARENT) {
                     now = getSym(); // RPARENT
                 } else {
-                    throwError(ERROR_J,getErrorLine());
+                    throwError(ERROR_J, getErrorLine());
                 }
                 if (!ifParamCntCoordinate(tmpParams)) {
                     throwError(ERROR_D, tmpLine);
@@ -546,6 +548,7 @@ IDENT FuncFParam() {
     } else {
         tmpIdent = {name, ARRAY_T_D2, {0, 0}};
     }
+    appendIdent(tmpIdent);
 
     printParseResult("FuncFParam");
     return tmpIdent;
@@ -554,11 +557,9 @@ IDENT FuncFParam() {
 int FuncFParams(int type, string name) {
     int paramCnt = 0;
     int tmp = peek();   // tmp == INTTK || RPARENT
-    vector<IDENT> tmpParams;
     while (tmp != RPARENT && tmp != LBRACE) {
         now = getSym(); // tmp == LPARENT
         IDENT tmpIdent = FuncFParam();
-        tmpParams.push_back(tmpIdent);
         tmp = peek();
         if (tmp == LBRACE) {
             throwError(ERROR_J, getErrorLine());
@@ -568,12 +569,9 @@ int FuncFParams(int type, string name) {
             now = getSym();
         }
         paramCnt++;
+        tmp = peek();
     }
-    if (type == INT_T) {
-        appendFUNC_INT(name, tmpParams);
-    } else {
-        appendFUNC_VOID(name, tmpParams);
-    }
+
     printParseResult("FuncFParams");
     return 1;
 }
@@ -582,19 +580,22 @@ int FuncDef(int type, string name) {
     if (ifReDefine(name)) {
         throwError(ERROR_B, getErrorLine());
     }
+    if (type == INT_T) {
+        appendFUNC_INT(name);
+    } else {
+        appendFUNC_VOID(name);
+    }
     // now == LPARENT
     int tmp = peek();
-    if (tmp != RPARENT) {
+    if (tmp != RPARENT && tmp != LBRACE) {
         FuncFParams(type, name);
-    } else {
-        vector<IDENT> tmpParams;
-        if (type == INT_T) {
-            appendFUNC_INT(name, tmpParams);
-        } else {
-            appendFUNC_VOID(name, tmpParams);
-        }
     }
-    now = getSym();  // now == RPARENT
+    tmp = peek();
+    if (tmp == RPARENT) {
+        now = getSym();  // now == RPARENT
+    } else {
+        throwError(ERROR_J, getErrorLine());
+    }
     isFunc = 1;
     Block();
     printParseResult("FuncDef");
@@ -605,10 +606,10 @@ int Stmt() {
     int tmp = peek();
     int tmpReturn = 1;
     if (tmp == BREAKTK || tmp == CONTINUETK) {
+        now = getSym();
         if (isWhile == 0) {
             throwError(ERROR_M, getErrorLine());
         }
-        now = getSym();
         tmp = peek();
         if (tmp != SEMICN) {
             throwError(ERROR_I, getErrorLine());
