@@ -1,10 +1,14 @@
 # ninja log v5
-4	2181	6884814841118196	CMakeFiles/compYler.dir/main.cpp.obj	e05e98dedcb011b3
+2	1524	6884926182138436	CMakeFiles/compYler.dir/main.cpp.obj	e05e98dedcb011b3
+248	1593	6884926184120675	CMakeFiles/compYler.dir/ParseAndPrintErr.cpp.obj	fef1804d67e7f5c6
 913	3134	6884814305816603	CMakeFiles/compYler.dir/Parser.cpp.obj	bbb35246343259f5
-4	1446	6884921299117664	build.ninja	64a3ad71163d874d
+262	1602	6884926184220783	CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj	d9fbfd250b57984e
+4	1446	6884941274129820	build.ninja	64a3ad71163d874d
 2184	3501	6884814854240815	compYler.exe	d4328b83a6b5e43a
 4	3065	6884814302504451	CMakeFiles/compYler.dir/Lexer.cpp.obj	96b04f673316099c
 566	3190	6884814306396726	CMakeFiles/compYler.dir/IdentTable.cpp.obj	868ffd7cf914e7a3
-2	1524	6884926182138436	CMakeFiles/compYler.dir/main.cpp.obj	e05e98dedcb011b3
-248	1593	6884926184120675	CMakeFiles/compYler.dir/ParseAndPrintErr.cpp.obj	fef1804d67e7f5c6
-262	1602	6884926184220783	CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj	d9fbfd250b57984e
+3	1213	6884941318671123	CMakeFiles/compYler.dir/main.cpp.obj	e05e98dedcb011b3
+17	1301	6884941320892930	CMakeFiles/compYler.dir/Lexer.cpp.obj	96b04f673316099c
+286	1308	6884941320962936	CMakeFiles/compYler.dir/IdentTable.cpp.obj	868ffd7cf914e7a3
+30	1316	6884941321052979	CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj	d9fbfd250b57984e
+299	1336	6884941321243001	CMakeFiles/compYler.dir/ParseAndPrintErr.cpp.obj	fef1804d67e7f5c6

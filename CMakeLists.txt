@@ -3,5 +3,5 @@ project(compYler)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(compYler main.cpp Lexer.cpp ParseAndPrintErr.cpp IdentTable.cpp mYddleLRGen.cpp ParseAndSement.cpp include/parseAndSement.h)
+add_executable(compYler main.cpp Lexer.cpp ParseAndPrintErr.cpp IdentTable.cpp mYddleLRGen.cpp ParseAndSemant.cpp include/parseAndSemant.h)
 include_directories(./include)

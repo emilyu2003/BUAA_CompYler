@@ -2,8 +2,8 @@
 // Created by emilyu on 2022/10/26.
 //
 
-#ifndef MAIN_CPP_PARSEANDSEMENT_H
-#define MAIN_CPP_PARSEANDSEMENT_H
+#ifndef MAIN_CPP_PARSEANDSEMANT_H
+#define MAIN_CPP_PARSEANDSEMANT_H
 #include <string>
 #include "IdentTable.h"
 
@@ -38,4 +38,4 @@ std::string Stmt();
 std::string Block();
 std::string MainFuncDef();
 
-#endif //MAIN_CPP_PARSEANDSEMENT_H
+#endif //MAIN_CPP_PARSEANDSEMANT_H
