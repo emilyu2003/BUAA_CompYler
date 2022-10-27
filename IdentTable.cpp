@@ -1,11 +1,10 @@
 //
 // Created by emilyu on 2022/10/17.
 //
-
 #include "IdentTable.h"
 #include "symbol.h"
+#include "base.h"
 #include <cstdio>
-#include <cstring>
 #include <algorithm>
 #include <iostream>
 
@@ -13,46 +12,84 @@ using namespace std;
 
 vector<IDENT> identTable;
 vector<int> identTableCnt;
+vector<IDENT> totalTable;
+int maxBlockNum = 0;
+vector<int> tmpBlockNums;
+
+void initIdentTable() {
+    totalTable.clear();
+    tmpBlockNums.clear();
+    tmpBlockNums.push_back(0);
+    maxBlockNum = 0;
+}
+
+void newBlock() {
+    maxBlockNum++;
+    tmpBlockNums.push_back(maxBlockNum);
+    //printTotalTable();
+}
+
+int getBlockNum() {
+    //printTotalTable();
+    return tmpBlockNums.back();
+}
 
 void appendINT(string name) {
     IDENT tmp = {name, INT_T, {1, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
-void appendVOID(string name) {
-    IDENT tmp = {name, VOID_T, {1, 0}};
-    identTable.push_back(tmp);
-}
+//void appendVOID(string name) {
+//    IDENT tmp = {name, VOID_T, {1, 0}};
+//    identTable.push_back(tmp);
+//    tmp.blockNum = getBlockNum();
+//    totalTable.push_back(tmp);
+//}
 
 void appendConst(string name) {
     IDENT tmp = {name, CONST_T, {1, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
 void appendARR1(string name) {
     IDENT tmp = {name, ARRAY_T_D1, {0, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
 void appendARR2(string name) {
     IDENT tmp = {name, ARRAY_T_D2, {0, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
 void appendConstARR1(string name) {
     IDENT tmp = {name, CONST_ARR_T_D1, {0, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
 void appendConstARR2(string name) {
     IDENT tmp = {name, CONST_ARR_T_D2, {0, 0}};
     identTable.push_back(tmp);
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
 }
 
 void appendFUNC_INT(string name) {
     IDENT tmp = {name, FUNC_T_INT, {0, 0}};
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
+    newBlock();
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
     //printIdentTable();
 }
 
@@ -71,6 +108,9 @@ void appendFUNC_VOID(string name) {
     IDENT tmp = {name, FUNC_T_VOID, {0, 0}};
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
+    newBlock();
+    tmp.blockNum = getBlockNum();
+    totalTable.push_back(tmp);
     //printIdentTable();
 }
 
@@ -87,6 +127,8 @@ void appendFUNC_VOID(string name) {
 
 void appendIdent(IDENT ident) {
     identTable.push_back(ident);
+    ident.blockNum = getBlockNum();
+    totalTable.push_back(ident);
 }
 
 bool ifReDefine(string name) {
@@ -171,11 +213,16 @@ void endBlock() {
     if (cnt > 0) {
         identTableCnt.pop_back();
     }
+
+    tmpBlockNums.pop_back();
+
+    //printTotalTable();
     //printIdentTable();
 }
 
 void enterBlock() {
     identTableCnt.push_back(identTable.size());
+    newBlock();
 }
 
 int lastLine = -1;
@@ -186,6 +233,7 @@ void throwError(int code, int line) {
     fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
     fclose(f);
     lastLine = line;
+    correctFlag = false;
 }
 
 IDENT getIdent(std::string name) {
@@ -207,6 +255,15 @@ void printIdentTable() {
             k++;
         }
         cout << identTable[i].name << " " << identTable[i].type << "\n";
+    }
+    cout << "----------------------end-------------------------\n";
+}
+
+void printTotalTable() {
+    cout << "----------------TOTAL TABLE----------------------\n";
+    for (int i = 0; i < totalTable.size(); i++) {
+        printf("%5d:", totalTable[i].blockNum);
+        cout << totalTable[i].name << " " << totalTable[i].type << "\n";
     }
     cout << "----------------------end-------------------------\n";
 }

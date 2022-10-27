@@ -7,730 +7,682 @@
 #include "symbol.h"
 #include "parseAndSemant.h"
 #include "base.h"
+#include "MLRGen.h"
 #include <cstdio>
 #include <string>
 #include <algorithm>
-#include <vector>
 #include <iostream>
-#include <fstream>
+#include <vector>
 
 using namespace std;
-vector<int> FuncRParamsType;
 
-int now;
-int isFunc = 0;
-vector<IDENT> RParams;
+int now_S;
 
+void printParseResult_S(const string &s) {
+
+}
 
 /* end 默认包括; */
-string RelExp() {
+string RelExp_S() {
     string tmpStr;
-    tmpStr += AddExp();
+    tmpStr += AddExp_S();
     int tmp = peek();
     while (tmp == LEQ || tmp == GEQ || tmp == LSS || tmp == GRE) {
-        printParseResult("RelExp");
-        now = getSym();
-        tmpStr += " " + getStr() + " ";
-        tmpStr += AddExp();
+        printParseResult_S("RelExp");
+        now_S = getSym();
+        string sym = getStr();
+        tmpStr += " " + AddExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
-    printParseResult("RelExp");
+    printParseResult_S("RelExp");
     return tmpStr;
 }
 
-string EqExp() {
+string EqExp_S() {
     string tmpStr;
-    tmpStr += RelExp();
+    tmpStr += RelExp_S();
     int tmp = peek();
     while (tmp == EQL || tmp == NEQ) {
-        printParseResult("EqExp");
-        now = getSym();
-        tmpStr += " " + getStr() + " ";
-        tmpStr += RelExp();
+        printParseResult_S("EqExp");
+        now_S = getSym();
+        string sym = getStr();
+        tmpStr += " " + RelExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
-    printParseResult("EqExp");
+    printParseResult_S("EqExp");
     return tmpStr;
 }
 
-string LAndExp() {
+string LAndExp_S() {
     string tmpStr;
-    tmpStr += EqExp();
+    tmpStr += EqExp_S();
     int tmp = peek();
     while (tmp == AND) {
-        printParseResult("LAndExp");
-        now = getSym();
-        tmpStr += " " + getStr() + " ";
-        tmpStr += EqExp();
+        printParseResult_S("LAndExp_S");
+        now_S = getSym();
+        string sym = getStr();
+        tmpStr += " " + EqExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
-    printParseResult("LAndExp");
+    printParseResult_S("LAndExp_S");
     return tmpStr;
 }
 
-string LOrExp() {
+string LOrExp_S() {
     string tmpStr;
-    tmpStr += LAndExp();
+    tmpStr += LAndExp_S();
     int tmp = peek();
     while (tmp == OR) {
-        printParseResult("LOrExp");
-        now = getSym();
-        tmpStr += " " + getStr() + " ";
-        tmpStr += LAndExp();
+        printParseResult_S("LOrExp_S");
+        now_S = getSym();
+        string sym = getStr();
+        tmpStr += " " + LAndExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
-    printParseResult("LOrExp");
+    printParseResult_S("LOrExp_S");
     return tmpStr;
 }
 
-string Exp() {
+string Exp_S() {
     string tmpStr;
-    tmpStr += AddExp();
+    tmpStr += AddExp_S();
 
-    printParseResult("Exp");
+    printParseResult_S("Exp_S");
     return tmpStr;
 }
 
-string Cond() {
+string Cond_S() {
     string tmpStr;
-    tmpStr += LOrExp();
+    tmpStr += LOrExp_S();
 
-    printParseResult("Cond");
+    printParseResult_S("Cond_S");
     return tmpStr;
 }
 
-string LVal() {
-    // now = IDENFR
+string LVal_S() {
+    // now_S = IDENFR
     string tmpStr = getStr();
-    IDENT tmpLVal = getIdent(tmpStr);
     int tmp = peek();
     if (tmp == LBRACK) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += Exp();
-        now = getSym(); // now == RBRACK
+        tmpStr += Exp_S();
+        now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
         if (tmp == LBRACK) {
-            now = getSym();
+            now_S = getSym();
             tmpStr += " " + getStr() + " ";
-            tmpStr += Exp();
-            now = getSym(); // now == RBRACK
+            tmpStr += Exp_S();
+            now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
         }
     }
 
-    printParseResult("LVal");
+    printParseResult_S("LVal_S");
     return tmpStr;
 }
 
-string Number() {
+string Number_S() {
     string tmpStr;
-    now = getSym();
+    now_S = getSym();
     tmpStr += getStr();
-    printParseResult("Number");
+    printParseResult_S("Number_S");
     return tmpStr;
 }
 
 
-string FuncRParams() {
+string FuncRParams_S() {
     string tmpStr;
     int tmp = peek();   // tmp == IDENFR
     while (tmp != RPARENT) {    // TODO dont know how to get type of RPARAMS
-        tmpStr += Exp();
-        now = getSym();  // now == COMMA
+        tmpStr += Exp_S();
+        now_S = getSym();  // now_S == COMMA
         tmpStr += " " + getStr() + " ";
         tmp = peek();
     }
-    printParseResult("FuncRParams");
+    printParseResult_S("FuncRParams_S");
     return tmpStr;
 }
 
-string PrimaryExp() {
+string PrimaryExp_S() {
     string tmpStr;
     int tmp = peek();
     if (tmp == LPARENT) {
-        now = getSym();
+        now_S = getSym();
         tmp = peek();
         if (tmp == RPARENT) {
-            now = getSym();
+            now_S = getSym();
             return tmpStr;
         }
-        tmpStr += Exp();
-        now = getSym();  // now == RPARENT
-        tmpStr += " " + getStr() + " ";
+        tmpStr += Exp_S();
+        now_S = getSym();  // now_S == RPARENT
+        //tmpStr += " " + getStr() + " ";
     } else {
         if (tmp == INTCON) {
-            tmpStr += Number();
+            tmpStr += Number_S();
         } else {
-            tmpStr += LVal();
+            tmpStr += LVal_S();
         }
     }
 
-    printParseResult("PrimaryExp");
+    printParseResult_S("PrimaryExp_S");
     return tmpStr;
 }
 
-string UnaryOp() {
-    now = getSym();
+string UnaryOp_S() {
+    now_S = getSym();
 
-    printParseResult("UnaryOp");
+    printParseResult_S("UnaryOp_S");
     return getStr();
 }
 
-string UnaryExp() {
+string UnaryExp_S() {
     string tmpStr;
     int tmp = peek();
     if (tmp == PLUS || tmp == MINU || tmp == NOT) {
-        //now = getSym();
-        tmpStr += UnaryOp() + " ";
-        tmpStr += UnaryExp();
+        //now_S = getSym();
+        tmpStr += UnaryOp_S();
+        tmpStr += UnaryExp_S();
     } else {
         if (tmp == IDENFR) {
-            now = getSym(); // IDENFR
-            tmpStr += " " + getStr() + " ";
+            now_S = getSym(); // IDENFR
             tmp = peek();
             if (tmp == LPARENT) {
-                now = getSym(); // LPARENT
+                tmpStr += " " + getStr() + " ";
+                now_S = getSym(); // LPARENT
                 tmpStr += " " + getStr() + " ";
                 tmp = peek();
                 if (tmp != RPARENT) {
-                    tmpStr += FuncRParams();
+                    tmpStr += FuncRParams_S();
                 }
-                now = getSym(); // RPARENT
+                now_S = getSym(); // RPARENT
                 tmpStr += " " + getStr() + " ";
             } else {
-                tmpStr += " " + PrimaryExp() + " ";
+                tmpStr += " " + PrimaryExp_S() + " ";
             }
         } else {
-            tmpStr += " " + PrimaryExp() + " ";
+            tmpStr += " " + PrimaryExp_S() + " ";
         }
     }
-    printParseResult("UnaryExp");
+    printParseResult_S("UnaryExp_S");
     return tmpStr;
 }
 
-string MulExp() {
+string MulExp_S() {
     string tmpStr;
-    tmpStr += UnaryExp();
+    tmpStr += UnaryExp_S();
     int tmp = peek();
     while (tmp == MULT || tmp == DIV || tmp == MOD) {
-        printParseResult("MulExp");
-        now = getSym();  // now == PLUS
-        tmpStr += " " + getStr() + " ";
-        tmpStr += UnaryExp();
+        printParseResult_S("MulExp_S");
+        now_S = getSym();  // now_S == PLUS
+        string sym = getStr();
+        tmpStr += " " + UnaryExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
-    printParseResult("MulExp");
+    printParseResult_S("MulExp_S");
     return tmpStr;
 }
 
-string AddExp() {
+string AddExp_S() {
     string tmpStr;
-    tmpStr += MulExp();
+    tmpStr += MulExp_S();
     int tmp = peek();
     while (tmp == PLUS || tmp == MINU) {
-        printParseResult("AddExp");
-        now = getSym();  // now == PLUS || MINU
-        tmpStr += " " + getStr() + " ";
-        tmpStr += MulExp();
+        printParseResult_S("AddExp_S");
+        now_S = getSym();  // now_S == PLUS || MINU
+        string sym = getStr();
+        tmpStr += " " + MulExp_S() + " ";
+        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
-    printParseResult("AddExp");
+    printParseResult_S("AddExp_S");
     return tmpStr;
 }
 
-string ConstExp() {
+string ConstExp_S() {
     string tmpStr;
-    tmpStr += AddExp();
+    tmpStr += AddExp_S();
 
-    printParseResult("ConstExp");
+    printParseResult_S("ConstExp_S");
     return tmpStr;
 }
 
-string ConstInitVal() {
-    // now == ASSIGN
+string ConstInitVal_S() {
+    // now_S == ASSIGN
     string tmpStr;
-    tmpStr += getStr() + " ";
     int tmp = peek();
     if (tmp == LBRACE) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
         tmp = peek();
         if (tmp != RBRACE) {
-            tmpStr += ConstInitVal();
+            tmpStr += ConstInitVal_S();
             tmp = peek();
             while (tmp == COMMA) {
-                now = getSym();
+                now_S = getSym();
                 tmpStr += " " + getStr() + " ";
-                tmpStr += ConstInitVal();
+                tmpStr += ConstInitVal_S();
                 tmp = peek();
             }
         }
     }
     if (tmp != LBRACE && tmp != RBRACE) {
-        tmpStr += " " + ConstExp() + " ";
+        tmpStr += " " + ConstExp_S() + " ";
     }
 
     if (tmp == RBRACE) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
     }
 
-    printParseResult("ConstInitVal");
+    printParseResult_S("ConstInitVal_S");
     return tmpStr;
 }
 
-string ConstDef() {
+string ConstDef_S() {
     string tmpStr;
-    now = getSym(); //now == INTTK || COMMA
-    tmpStr += " " + getStr() + " ";
-    now = getSym();
+    now_S = getSym(); //now_S == INTTK || COMMA
+    if (getStr() != "int") {
+        tmpStr += " " + getStr() + " ";
+    }
+    now_S = getSym();
     tmpStr += " " + getStr() + " ";
     int tmp = peek();
     if (tmp == LBRACK) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += ConstExp();
-        now = getSym(); // now == RBRACK
+        tmpStr += ConstExp_S();
+        now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
         if (tmp == LBRACK) {
-            now = getSym();
+            now_S = getSym();
             tmpStr += " " + getStr() + " ";
-            tmpStr += ConstExp();
-            now = getSym(); // now == RBRACK
+            tmpStr += ConstExp_S();
+            now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
         }
     }
 
     tmp = peek();
     if (tmp == ASSIGN) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += ConstInitVal();
+        tmpStr += ConstInitVal_S();
     }
-    printParseResult("ConstDef");
+    printParseResult_S("ConstDef_S");
     return tmpStr;
 }
 
-string ConstDecl() {
-    // now == INTTK
+string ConstDecl_S() {
+    // now_S == INTTK
     string tmpStr;
-    tmpStr = getStr() + " ";
-
-    tmpStr += ConstDef() + " ";
+    tmpStr += ConstDef_S() + " ";
     int tmp = peek();
     while (tmp == COMMA) {
-        tmpStr += ConstDef() + " ";
+        tmpStr += ConstDef_S() + " ";
         tmp = peek();
     }
 
-    tmp = peek();
-    if (tmp != SEMICN) {
-        throwError(ERROR_I, getErrorLine());
-    } else {
-        now = getSym(); // now == SEMICN
-    }
+    now_S = getSym(); // now_S == SEMICN
+    tmpStr += " " + getStr() + " ";
 
-    printParseResult("ConstDecl");
+    printParseResult_S("ConstDecl_S");
     return tmpStr;
 }
 
-string InitVal() {
+string InitVal_S() {
     string tmpStr;
     int tmp = peek();
     if (tmp == LBRACE) {
-        now = getSym();
+        now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += InitVal();
+        tmpStr += InitVal_S();
         tmp = peek();
         while (tmp == COMMA) {
-            now = getSym();
+            now_S = getSym();
             tmpStr += " " + getStr() + " ";
-            tmpStr += InitVal();
+            tmpStr += InitVal_S();
             tmp = peek();
         }
     }
     if (tmp != LBRACE && tmp != RBRACE) {
-        tmpStr += " " + Exp() + " ";
+        tmpStr += " " + Exp_S() + " ";
     }
 
     tmp = peek();
     if (tmp == RBRACE) {
-        now = getSym();
+        now_S = getSym();
     }
-    printParseResult("InitVal");
+    printParseResult_S("InitVal_S");
     return tmpStr;
 }
 
-int VarDef() {
-    // now == INTTK
-    now = getSym();  // now = IDENFR
-    string name = getStr();
-    int tmpLine = getErrorLine();
-    int tmp = peek();
+string VarDef_S() {
+    // now_S == INTTK
     int dimension = 0;
+    string tmpStr;
+    now_S = getSym();  // now_S = IDENFR
+    genVarCode(getStr());
+    string name = getStr();
+    tmpStr += " " + getStr() + " ";
+    int tmp = peek();
     if (tmp == LBRACK) {
-        now = getSym();
-        ConstExp();
-        tmp = peek();
-        if (tmp != RBRACK) {
-            throwError(ERROR_K, getErrorLine());
-        } else {
-            now = getSym(); // now == RBRACK
-        }
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
+        tmpStr += ConstExp_S();
+        now_S = getSym(); // now_S == RBRACK
+        tmpStr += " " + getStr() + " ";
         tmp = peek();
         dimension++;
         if (tmp == LBRACK) {
-            now = getSym();
-            ConstExp();
-            tmp = peek();
-            if (tmp != RBRACK) {
-                throwError(ERROR_K, getErrorLine());
-            } else {
-                now = getSym(); // now == RBRACK
-            }
+            now_S = getSym();
+            tmpStr += " " + getStr() + " ";
+            tmpStr += ConstExp_S();
+            now_S = getSym(); // now_S == RBRACK
+            tmpStr += " " + getStr() + " ";
             dimension++;
         }
     }
 
     tmp = peek();
+    string expCode;
     if (tmp == ASSIGN) {
-        now = getSym();
-        InitVal();
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
+        //tmpStr += InitVal_S();
+        expCode = InitVal_S();
+        tmpStr += expCode;
+        genAssignCode(name, expCode, dimension);
     }
 
-    if (ifReDefine(name)) {
-        throwError(ERROR_B, tmpLine);
-    } else {
-        if (dimension == 0) {
-            appendINT(name);
-        } else if (dimension == 1) {
-            appendARR1(name);
-        } else if (dimension == 2) {
-            appendARR2(name);
-        }
-    }
-
-    printParseResult("VarDef");
-    return 1;
+    printParseResult_S("VarDef_S");
+    return tmpStr;
 }
 
-int VarDecl() {
-    // now == INTTK
-    VarDef();
-    now = getSym();
-    while (now == COMMA) {
-        VarDef();
-        now = getSym();
+string VarDecl_S() {
+    // now_S == INTTK
+    string tmpStr;
+    tmpStr += " " + getStr() + " ";
+    tmpStr += VarDef_S();
+    now_S = getSym();
+    tmpStr += " " + getStr() + " ";
+    while (now_S == COMMA) {
+        tmpStr += VarDef_S();
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
     }
 
-    if (now != SEMICN) {
-        throwError(ERROR_I, getErrorLine());
-    } else {
-        // now == SEMICN
-    }
-
-    printParseResult("VarDecl");
-    return 1;
+    printParseResult_S("VarDecl_S");
+    return tmpStr;
 }
 
-IDENT FuncFParam() {
-    // now == INTTK
-    now = getSym();  // now == IDENFR
-    string name = getStr();
-    if (ifReDefine(name)) {
-        throwError(ERROR_B, getErrorLine());
-    }
-    IDENT tmpIdent;
-    int dimension;
-
+string FuncFParam_S() {
+    // now_S == INTTK
+    string tmpStr;
+    tmpStr += getStr() + " ";
+    now_S = getSym();  // now_S == IDENFR
+    tmpStr += " " + getStr() + " ";
     int tmp = peek();
     if (tmp == LBRACK) {
-        now = getSym();  // now == LBRACK
-        tmp = peek();
-        if (tmp != RBRACK) {
-            throwError(ERROR_K, getErrorLine());
-        } else {
-            now = getSym(); // now == RBRACK
-        }
-        dimension++;
+        now_S = getSym();  // now_S == LBRACK
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym(); // now_S == RBRACK
+        tmpStr += " " + getStr() + " ";
         tmp = peek();
         if (tmp == LBRACK) {
-            now = getSym();  // now == LBRACK
-            ConstExp();
-            tmp = peek();
-            if (tmp != RBRACK) {
-                throwError(ERROR_K, getErrorLine());
-            } else {
-                now = getSym(); // now == RBRACK
-            }
-            dimension++;
+            now_S = getSym();  // now_S == LBRACK
+            tmpStr += " " + getStr() + " ";
+            tmpStr += ConstExp_S();
+
+            now_S = getSym(); // now_S == RBRACK
+            tmpStr += " " + getStr() + " ";
         }
     }
-    if (dimension == 0) {
-        tmpIdent = {name, INT_T, {0, 0}};
-    } else if (dimension == 2) {
-        tmpIdent = {name, ARRAY_T_D1, {0, 0}};
-    } else {
-        tmpIdent = {name, ARRAY_T_D2, {0, 0}};
-    }
-    appendIdent(tmpIdent);
-
-    printParseResult("FuncFParam");
-    return tmpIdent;
+    genFuncParamCode("int", tmpStr.substr(3, tmpStr.size() - 3));
+    printParseResult_S("FuncFParam_S");
+    return tmpStr;
 }
 
-int FuncFParams(int type, string name) {
-    int paramCnt = 0;
+string FuncFParams_S() {
+    string tmpStr;
     int tmp = peek();   // tmp == INTTK || RPARENT
     while (tmp != RPARENT && tmp != LBRACE) {
-        now = getSym(); // tmp == LPARENT
-        IDENT tmpIdent = FuncFParam();
+        now_S = getSym(); // tmp == LPARENT
+        tmpStr += " " + getStr() + " ";
+        tmpStr += FuncFParam_S();
         tmp = peek();
-        if (tmp == LBRACE) {
-            throwError(ERROR_J, getErrorLine());
-            break;
-        }
         if (tmp != RPARENT) {
-            now = getSym();
+            now_S = getSym();
+            tmpStr += " " + getStr() + " ";
         }
-        paramCnt++;
         tmp = peek();
     }
 
-    printParseResult("FuncFParams");
-    return 1;
+    printParseResult_S("FuncFParams_S");
+    return tmpStr;
 }
 
-int FuncDef(int type, string name) {
-    if (ifReDefine(name)) {
-        throwError(ERROR_B, getErrorLine());
-    }
-    if (type == INT_T) {
-        appendFUNC_INT(name);
-    } else {
-        appendFUNC_VOID(name);
-    }
-    // now == LPARENT
+string FuncDef_S() {
+    // now_S == LPARENT
+    string tmpStr;
     int tmp = peek();
     if (tmp != RPARENT && tmp != LBRACE) {
-        FuncFParams(type, name);
+        tmpStr += FuncFParams_S();
     }
-    tmp = peek();
-    if (tmp == RPARENT) {
-        now = getSym();  // now == RPARENT
-    } else {
-        throwError(ERROR_J, getErrorLine());
-    }
-    isFunc = 1;
-    Block();
-    printParseResult("FuncDef");
-    return 1;
+    now_S = getSym();  // now_S == RPARENT
+    tmpStr += " " + getStr() + " ";
+
+    tmpStr += Block_S();
+    printParseResult_S("FuncDef_S");
+    return tmpStr;
 }
 
-int Stmt() {
+string Stmt_S() {
+    string tmpStr;
     int tmp = peek();
-    int tmpReturn = 1;
     if (tmp == BREAKTK || tmp == CONTINUETK) {
-        now = getSym();
-        tmp = peek();
-        now = getSym();  // now == SEMICN
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym();  // now_S == SEMICN
+        tmpStr += " " + getStr() + " ";
     } else if (tmp == RETURNTK) {
-        now = getSym();
-        //now = getSym();
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
         tmp = peek();
-
         if (tmp != SEMICN) {
-            Exp();
+            tmpStr += Exp_S();
         }
-        now = getSym(); // now == SEMICN
-
-        tmpReturn = 2;
+        now_S = getSym(); // now_S == SEMICN
+        tmpStr += " " + getStr() + " ";
     } else if (tmp == PRINTFTK) {
-        now = getSym(); // now == PRINTFTK
-        int tmpLine = getErrorLine();
-        now = getSym(); // now == LPARENT
-        now = getSym(); // now == STRCON
-
+        now_S = getSym(); // now_S == PRINTFTK
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym(); // now_S == LPARENT
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym(); // now_S == STRCON
+        tmpStr += " " + getStr() + " ";
         string strCon = getStr();
-        if (!ifFormatLegal(strCon)) {
-            throwError(ERROR_A, getErrorLine());
-        }
 
-        int expCnt = 0;
-
+        utils.clear();
         tmp = peek();
         if (tmp != RPARENT) {
-            now = getSym();
-            while (now == COMMA) {
-                Exp();
-                now = getSym();
-                expCnt++;
+            now_S = getSym();
+            tmpStr += " " + getStr() + " ";
+            while (now_S == COMMA) {
+                string para = Exp_S();
+                tmpStr += para;
+                utils.push_back(para);
+                now_S = getSym();
+                tmpStr += " " + getStr() + " ";
             }
         } else {
-            now = getSym();
+            now_S = getSym();
+            tmpStr += " " + getStr() + " ";
         }
+        now_S = getSym(); // now_S == SEMICN
+        tmpStr += " " + getStr() + " ";
 
-        if (!ifStrConCntCoordinate(strCon, expCnt)) {
-            throwError(ERROR_L, tmpLine);
-        }
-
-        tmp = peek();
-        if (tmp != SEMICN) {
-            throwError(ERROR_I, getErrorLine());
-        } else {
-            now = getSym(); // now == SEMICN
-        }
+        genPrintfCode(strCon);
     } else if (tmp == IFTK) {
-        now = getSym();  // now == IFTK
-        now = getSym(); // now == LPARENT
-        //now = getSym();
-        Cond();
-        now = getSym(); // now == RPARENT
-        Stmt();
+        now_S = getSym();  // now_S == IFTK
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym(); // now_S == LPARENT
+        tmpStr += " " + getStr() + " ";
+        tmpStr += Cond_S();
+        now_S = getSym(); // now_S == RPARENT
+        tmpStr += " " + getStr() + " ";
+        tmpStr += Stmt_S();
         tmp = peek();
         if (tmp == ELSETK) {
-            now = getSym(); // now == ELSETK
-            Stmt();
+            now_S = getSym(); // now_S == ELSETK
+            tmpStr += " " + getStr() + " ";
+            tmpStr += Stmt_S();
         }
     } else if (tmp == WHILETK) {
-        now = getSym();  // now == WHILETK
-        now = getSym(); // now == LPARENT
-        //now = getSym();
-        Cond();
-        // now == RPARENT
-        now = getSym();
-        Stmt();
+        now_S = getSym();  // now_S == WHILETK
+        tmpStr += " " + getStr() + " ";
+        now_S = getSym(); // now_S == LPARENT
+        tmpStr += " " + getStr() + " ";
+        tmpStr += Cond_S();
+        // now_S == RPARENT
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
+        tmpStr += Stmt_S();
     } else if (tmp == LBRACE) {
-        Block();
+        tmpStr += Block_S();
     } else if (tmp == IDENFR) {
         if (!isLVal()) {
-            Exp();
+            tmpStr += Exp_S();
         } else {
-            now = getSym();  //IDENFR
-            int rtNum = LVal();
-            if (rtNum == ERROR_H) {
-                throwError(ERROR_H, getErrorLine());
-            }
-            now = getSym(); // now == ASSIGN
+            now_S = getSym();  //IDENFR
+            tmpStr += LVal_S();   // contains identifier
+            now_S = getSym(); // now_S == ASSIGN
+            tmpStr += " " + getStr() + " ";
             tmp = peek();
             if (tmp == GETINTTK) {
-                now = getSym(); // now == GETINTTK
-                now = getSym(); // now == LPARENT
-                now = getSym(); // now == RPARENT
-                //now = getSym(); // now == SEMICN
+                now_S = getSym(); // now_S == GETINTTK
+                tmpStr += " " + getStr() + " ";
+                now_S = getSym(); // now_S == LPARENT
+                tmpStr += " " + getStr() + " ";
+                now_S = getSym(); // now_S == RPARENT
+                tmpStr += " " + getStr() + " ";
+                //now_S = getSym(); // now_S == SEMICN
             } else {
-                Exp();
+                tmpStr += " " + Exp_S() + " ";
             }
         }
-        tmp = peek();
-        if (tmp == SEMICN) {
-            now = getSym();
-        } else {
-            throwError(ERROR_I, getErrorLine());
-        }
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
     } else {
         tmp = peek();
         if (tmp != SEMICN) {
-            Exp();
+            tmpStr += Exp_S();
         }
-        tmp = peek();
-        if (tmp == SEMICN) {
-            now = getSym();
-        } else {
-            throwError(ERROR_I, getErrorLine());
-        }
+        now_S = getSym();
+        tmpStr += " " + getStr() + " ";
     }
 
-    printParseResult("Stmt");
-    return tmpReturn;
+    printParseResult_S("Stmt_S");
+    return tmpStr;
 }
 
-int Block() {
-    int tmpFunc = isFunc;
-    if (isFunc != 1) {
-        enterBlock();
-    }
-    isFunc = 0;
-
-    now = getSym();
-    // now == LBRACE
+string Block_S() {
+    string tmpStr;
+    now_S = getSym(); // now_S == LBRACE
+    tmpStr += " " + getStr() + " ";
     int tmp = peek();
-    int last = 0;
     while (tmp != RBRACE) {
         if (tmp == CONSTTK) {
-            now = getSym();
-            last = ConstDecl();
+            now_S = getSym();
+            tmpStr += ConstDecl_S();
         } else if (tmp == INTTK) {
-            now = getSym();
-            last = VarDecl();
+            now_S = getSym();
+            tmpStr += VarDecl_S();
         } else {
-            last = Stmt();
+            tmpStr += Stmt_S();
         }
         tmp = peek();
     }
-    now = getSym();  // now == RBRACE
+    now_S = getSym();  // now_S == RBRACE
+    tmpStr += " " + getStr() + " ";
 
-    endBlock();  // remove idents in this block
-    printParseResult("Block");
-    return 1;
+    printParseResult_S("Block_S");
+    return tmpStr;
 }
 
-int MainFuncDef() {
-    // now == INTTK
-    now = getSym(); // now == MAINTK
-    now = getSym(); // now == LPARENT
-    now = getSym(); // now == RPARENT
-    isFunc = 2;
-    Block();
-    // now == RBRACE
-    printParseResult("MainFuncDef");
-    return 1;
+string MainFuncDef_S() {
+    // now_S == INTTK
+    string tmpStr;
+    now_S = getSym(); // now_S == MAINTK
+    genString("\nMAIN");
+    tmpStr += " " + getStr() + " ";
+    now_S = getSym(); // now_S == LPARENT
+    tmpStr += " " + getStr() + " ";
+    now_S = getSym(); // now_S == RPARENT
+    tmpStr += " " + getStr() + " ";
+    tmpStr += Block_S();
+    // now_S == RBRACE
+    printParseResult_S("MainFuncDef_S");
+    return tmpStr;
 }
 
-int FuncType() {
-    printParseResult("FuncType");
-    return 1;
+string FuncType_S() {
+    printParseResult_S("FuncType_S");
+    return " ";
 }
 
-int parse() {
+string parseAndSemant() {
+    lexerPos = 0;
+    string tmpStr;
     while (lexerPos < lexerLen) {
-        now = getSym();
-        if (now == CONSTTK) {
-            ConstDecl();
-        } else if (now == INTTK) {
+        now_S = getSym();
+        if (now_S == CONSTTK) {
+            tmpStr += " " + getStr() + " ";
+            tmpStr += ConstDecl_S();
+        } else if (now_S == INTTK) {
             int tmp = peek();
             if (tmp == MAINTK) {
-                MainFuncDef();
+                tmpStr += " " + getStr() + " ";
+                tmpStr += " " + MainFuncDef_S() + " ";
             } else if (tmp == IDENFR) {
-                //now = getSym(); // now == IDENFR
+                //now_S = getSym(); // now_S == IDENFR
                 tmp = peeeek();
                 if (tmp == LPARENT) {
-                    FuncType();
-                    now = getSym(); // now == IDENFR
-                    string name = getStr();
-                    now = getSym(); // now == (
-                    FuncDef(INT_T, name);
+                    tmpStr += " " + getStr() + " ";
+                    tmpStr += FuncType_S();
+                    now_S = getSym(); // now_S == IDENFR
+                    tmpStr += " " + getStr() + " ";
+                    genFuncDeclCode("int", getStr());
+                    now_S = getSym(); // now_S == (
+                    tmpStr += " " + getStr() + " ";
+                    tmpStr += FuncDef_S();
                 } else {
-                    // now == INTTK
-                    VarDecl();
+                    // now_S == INTTK
+                    tmpStr += VarDecl_S();
                 }
             }
-        } else if (now == VOIDTK) {
-            FuncType();
-            now = getSym();  // now == IDENFR
-            string name = getStr();
-            now = getSym();  // now == (
-            FuncDef(VOID_T, name);
+        } else if (now_S == VOIDTK) {
+            tmpStr += FuncType_S();
+            now_S = getSym();  // now_S == IDENFR
+            tmpStr += " " + getStr() + " ";
+            genFuncDeclCode("void", getStr());
+            now_S = getSym();  // now_S == (
+            tmpStr += " " + getStr() + " ";
+            tmpStr += FuncDef_S();
         }
     }
-    printParseResult("CompUnit");
-    return 1;
+    printParseResult_S("CompUnit");
+    return tmpStr;
 }

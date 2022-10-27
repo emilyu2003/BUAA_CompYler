@@ -1,7 +1,12 @@
-const int a = 0, b = 1, c = 2;
+int B[2][2] = {{1,2},{10+23, 12*5}};
+int a = (1 + 1 +2)*(2 / 5), b, c = 100 * a % 5;
+const int K = 1000, F, D;
+int A[5] = {1,2,3,4,5};
 
 int main() {
-    break;
-    continue;
+    int a;
+    b = 0;
+    printf("hello world!\n");
+    printf("test%d : %d!\n" ,a, b);
     return 0;
 }

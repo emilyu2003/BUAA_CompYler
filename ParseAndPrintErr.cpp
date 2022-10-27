@@ -18,10 +18,9 @@ int now;
 bool funcVoid = false;
 int isFunc = 0;
 int isWhile = 0;
-vector<IDENT> RParams;
 
 void printParseResult(const string &s) {
-    string output = "<" + s + ">";
+    string output = "<" + s + ">" + "\n";
     FILE *f = fopen("output.txt", "a");
     fprintf(f, "%s", output.c_str());
     fclose(f);
@@ -795,6 +794,7 @@ int FuncType() {
 }
 
 int parseAndErr() {
+    lexerPos = 0;
     while (lexerPos < lexerLen) {
         now = getSym();
         if (now == CONSTTK) {

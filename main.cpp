@@ -1,13 +1,11 @@
-#include <iostream>
 #include <cstring>
 #include <cstdio>
 #include <algorithm>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include<fstream>
 #include "symbol.h"
 #include "parseAndErr.h"
+#include "parseAndSemant.h"
 #include "base.h"
 
 using namespace std;
@@ -17,6 +15,7 @@ int readPos = 0, lexerPos = 0;
 int inputLen, lexerLen = 0;
 char line[500];
 Lexer lexerOutput[1000005];
+bool correctFlag;
 
 int main() {
     freopen("testfile.txt", "r", stdin);
@@ -25,6 +24,8 @@ int main() {
     FILE *f = fopen("output.txt", "w");
     fclose(f);
     f = fopen("error.txt", "w");
+    fclose(f);
+    f = fopen("test.txt", "w");
     fclose(f);
 
     // read code
@@ -47,7 +48,13 @@ int main() {
     lexerLen--;
 
     // parser
+    initIdentTable();
+    correctFlag = true;
     parseAndErr();
-
+    if (correctFlag) {
+        printf("%s", parseAndSemant().c_str());
+    } else {
+        printf("plz check your syntax\n");
+    }
     return 0;
 }

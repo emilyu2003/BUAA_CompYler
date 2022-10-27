@@ -1,14 +1,421 @@
 INTTK int
+IDENFR B
+LBRACK [
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<ConstExp>
+RBRACK ]
+LBRACK [
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<ConstExp>
+RBRACK ]
+ASSIGN =
+LBRACE {
+LBRACE {
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+RBRACE }
+<InitVal>
+COMMA ,
+LBRACE {
+INTCON 10
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+INTCON 23
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 12
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+RBRACE }
+<InitVal>
+RBRACE }
+<InitVal>
+<VarDef>
+SEMICN ;
+<VarDecl>
+INTTK int
+IDENFR a
+ASSIGN =
+LPARENT (
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RPARENT )
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+LPARENT (
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+DIV /
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RPARENT )
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+<VarDef>
+COMMA ,
+IDENFR b
+<VarDef>
+COMMA ,
+IDENFR c
+ASSIGN =
+INTCON 100
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MOD %
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+<VarDef>
+SEMICN ;
+<VarDecl>
+CONSTTK const
+INTTK int
+IDENFR K
+ASSIGN =
+INTCON 1000
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<ConstExp>
+<ConstInitVal>
+<ConstDef>
+COMMA ,
+IDENFR F
+<ConstDef>
+COMMA ,
+IDENFR D
+<ConstDef>
+SEMICN ;
+<ConstDecl>
+INTTK int
+IDENFR A
+LBRACK [
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<ConstExp>
+RBRACK ]
+ASSIGN =
+LBRACE {
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 3
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 4
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+COMMA ,
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+RBRACE }
+<InitVal>
+<VarDef>
+SEMICN ;
+<VarDecl>
+INTTK int
 MAINTK main
 LPARENT (
 RPARENT )
 LBRACE {
-BREAKTK break
+INTTK int
+IDENFR a
+<VarDef>
 SEMICN ;
-<Stmt>CONTINUETK continue
-SEMICN ;
-<Stmt>RETURNTK return
+<VarDecl>
+IDENFR b
+<LVal>
+ASSIGN =
 INTCON 0
-<Number><PrimaryExp><UnaryExp><MulExp><AddExp><Exp>SEMICN ;
-<Stmt>RBRACE }
-<Block><MainFuncDef><CompUnit>
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+SEMICN ;
+<Stmt>
+PRINTFTK printf
+LPARENT (
+STRCON "hello world!\n"
+RPARENT )
+SEMICN ;
+<Stmt>
+PRINTFTK printf
+LPARENT (
+STRCON "test%d : %d!\n"
+COMMA ,
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+COMMA ,
+IDENFR b
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RPARENT )
+SEMICN ;
+<Stmt>
+RETURNTK return
+INTCON 0
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+SEMICN ;
+<Stmt>
+RBRACE }
+<Block>
+<MainFuncDef>
+<CompUnit>
+INTTK int
+IDENFR B
+LBRACK [
+INTCON 2
+RBRACK ]
+LBRACK [
+INTCON 2
+RBRACK ]
+ASSIGN =
+LBRACE {
+LBRACE {
+INTCON 1
+COMMA ,
+INTCON 2
+RBRACE }
+COMMA ,
+LBRACE {
+INTCON 10
+PLUS +
+INTCON 23
+COMMA ,
+INTCON 12
+MULT *
+INTCON 5
+RBRACE }
+RBRACE }
+SEMICN ;
+INTTK int
+IDENFR a
+ASSIGN =
+LPARENT (
+INTCON 1
+PLUS +
+INTCON 1
+PLUS +
+INTCON 2
+RPARENT )
+MULT *
+LPARENT (
+INTCON 2
+DIV /
+INTCON 5
+RPARENT )
+COMMA ,
+IDENFR b
+COMMA ,
+IDENFR c
+ASSIGN =
+INTCON 100
+MULT *
+IDENFR a
+MOD %
+INTCON 5
+SEMICN ;
+CONSTTK const
+INTTK int
+IDENFR K
+ASSIGN =
+INTCON 1000
+COMMA ,
+IDENFR F
+COMMA ,
+IDENFR D
+SEMICN ;
+INTTK int
+IDENFR A
+LBRACK [
+INTCON 5
+RBRACK ]
+ASSIGN =
+LBRACE {
+INTCON 1
+COMMA ,
+INTCON 2
+COMMA ,
+INTCON 3
+COMMA ,
+INTCON 4
+COMMA ,
+INTCON 5
+RBRACE }
+SEMICN ;
+INTTK int
+MAINTK main
+LPARENT (
+RPARENT )
+LBRACE {
+INTTK int
+IDENFR a
+SEMICN ;
+IDENFR b
+ASSIGN =
+INTCON 0
+SEMICN ;
+PRINTFTK printf
+LPARENT (
+STRCON "hello world!\n"
+RPARENT )
+SEMICN ;
+PRINTFTK printf
+LPARENT (
+STRCON "test%d : %d!\n"
+COMMA ,
+IDENFR a
+COMMA ,
+IDENFR b
+RPARENT )
+SEMICN ;
+RETURNTK return
+INTCON 0
+SEMICN ;
+RBRACE }

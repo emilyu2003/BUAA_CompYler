@@ -38,7 +38,14 @@ struct IDENT {
     int type;   // INT VOID ARR[], ARR[][], INT FUNC, VOID FUNC
     int len[2]; // INT == [1, 0], VOID == [1, 0], ARR[n] == [n, 0], ARR[n][m] = [n, m], FUNC = [0, 0]
     int paramLen;  // len of params
+    int blockNum;
 };
+
+void initIdentTable();
+
+void newBlock();
+
+int getBlockNum();
 
 void appendINT(std::string name);
 
@@ -86,7 +93,10 @@ IDENT getIdent(std::string str);
 
 void printIdentTable();
 
+void printTotalTable();
+
 extern std::vector<IDENT> identTable;
+extern std::vector<IDENT> totalTable;
 extern std::vector<int> identTableCnt;
 
 #endif //MAIN_CPP_IDENTTABLE_H

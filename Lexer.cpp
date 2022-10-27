@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <iostream>
-#include <cstring>
 #include <algorithm>
 #include <cctype>
 #include <vector>
@@ -8,7 +7,6 @@
 #include <unordered_map>
 #include "symbol.h"
 #include "base.h"
-#include <fstream>
 
 using namespace std;
 

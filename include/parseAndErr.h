@@ -28,7 +28,7 @@ int InitVal();
 int VarDef();
 int VarDecl();
 IDENT FuncFParam();
-int FuncFParams(std::string str);
+int FuncFParams(int type, std::string str);
 int FuncDef(int type, std::string str);
 int Stmt();
 int Block();

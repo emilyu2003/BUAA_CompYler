@@ -84,8 +84,8 @@ build CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj: CXX_COMPILER__compYler_Debug 
   OBJECT_DIR = CMakeFiles\compYler.dir
   OBJECT_FILE_DIR = CMakeFiles\compYler.dir
 
-build CMakeFiles/compYler.dir/ParseAndSement.cpp.obj: CXX_COMPILER__compYler_Debug D$:/miao/SCHOOL/BUAA/Junior/Principles$ of$ Compliers/experiment/compYler/ParseAndSement.cpp || cmake_object_order_depends_target_compYler
-  DEP_FILE = CMakeFiles\compYler.dir\ParseAndSement.cpp.obj.d
+build CMakeFiles/compYler.dir/ParseAndSemant.cpp.obj: CXX_COMPILER__compYler_Debug D$:/miao/SCHOOL/BUAA/Junior/Principles$ of$ Compliers/experiment/compYler/ParseAndSemant.cpp || cmake_object_order_depends_target_compYler
+  DEP_FILE = CMakeFiles\compYler.dir\ParseAndSemant.cpp.obj.d
   FLAGS = -g -std=gnu++11
   INCLUDES = -I"D:/miao/SCHOOL/BUAA/Junior/Principles of Compliers/experiment/compYler/./include"
   OBJECT_DIR = CMakeFiles\compYler.dir
@@ -99,7 +99,7 @@ build CMakeFiles/compYler.dir/ParseAndSement.cpp.obj: CXX_COMPILER__compYler_Deb
 #############################################
 # Link the executable compYler.exe
 
-build compYler.exe: CXX_EXECUTABLE_LINKER__compYler_Debug CMakeFiles/compYler.dir/main.cpp.obj CMakeFiles/compYler.dir/Lexer.cpp.obj CMakeFiles/compYler.dir/ParseAndPrintErr.cpp.obj CMakeFiles/compYler.dir/IdentTable.cpp.obj CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj CMakeFiles/compYler.dir/ParseAndSement.cpp.obj
+build compYler.exe: CXX_EXECUTABLE_LINKER__compYler_Debug CMakeFiles/compYler.dir/main.cpp.obj CMakeFiles/compYler.dir/Lexer.cpp.obj CMakeFiles/compYler.dir/ParseAndPrintErr.cpp.obj CMakeFiles/compYler.dir/IdentTable.cpp.obj CMakeFiles/compYler.dir/mYddleLRGen.cpp.obj CMakeFiles/compYler.dir/ParseAndSemant.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\compYler.dir
