@@ -6,6 +6,8 @@
 #define MAIN_CPP_MLRGEN_H
 #include <vector>
 
+void printCode(const std::string& toFile, const std::string& format, const std::string& str);
+
 std::string genExpCode(std::string str);
 
 bool isNum(std::string str);
@@ -20,9 +22,13 @@ void genFuncParamCode(std::string type, std::string name);
 
 void genVarCode(std::string str);
 
+void genConstCode(std::string str);
+
 void genAssignCode(std::string str, std::string str1, int dim);
 
 void genPrintfCode(std::string str);
+
+void genScanfCode();
 
 void addIfCode();
 

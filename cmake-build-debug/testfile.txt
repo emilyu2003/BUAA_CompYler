@@ -3,9 +3,19 @@ int a = (1 + 1 +2)*(2 / 5), b, c = 100 * a % 5;
 const int K = 1000, F, D;
 int A[5] = {1,2,3,4,5};
 
+void func1(int a, int b[], int c) {
+    int lll = 0 *13245;
+}
+
+int func2(int b) {
+    int lalrsg = 154*1 + a / 9;
+    return lalrsg;
+}
+
 int main() {
     int a;
-    b = 0;
+    a = getint();
+    b = 0 + 5 * 25 / a;
     printf("hello world!\n");
     printf("test%d : %d!\n" ,a, b);
     return 0;

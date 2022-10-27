@@ -91,6 +91,7 @@ int getInt() {
 
 int isLVal() {
     int flag = 0;
+    int last = -1;
     for (int i = 0;; i++) {
         int k = lexerPos + i;
         if (k > lexerLen) break;
@@ -100,6 +101,11 @@ int isLVal() {
         if (lexerOutput[k].type == SEMICN) {
             break;
         }
+        if ((last == INTCON || last == IDENFR) &&
+            (lexerOutput[k].type == INTCON || lexerOutput[k].type == IDENFR)) {
+            return false;
+        }
+        last = lexerOutput[k].type;
     }
     return flag;
 }

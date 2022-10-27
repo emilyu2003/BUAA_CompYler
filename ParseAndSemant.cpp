@@ -138,7 +138,6 @@ string Number_S() {
     return tmpStr;
 }
 
-
 string FuncRParams_S() {
     string tmpStr;
     int tmp = peek();   // tmp == IDENFR
@@ -291,13 +290,16 @@ string ConstInitVal_S() {
 }
 
 string ConstDef_S() {
-    string tmpStr;
+    string tmpStr, expCode;
+    int dimension = 0;
     now_S = getSym(); //now_S == INTTK || COMMA
     if (getStr() != "int") {
         tmpStr += " " + getStr() + " ";
     }
     now_S = getSym();
     tmpStr += " " + getStr() + " ";
+    genConstCode(getStr());
+    string name = getStr();
     int tmp = peek();
     if (tmp == LBRACK) {
         now_S = getSym();
@@ -306,12 +308,14 @@ string ConstDef_S() {
         now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
+        dimension++;
         if (tmp == LBRACK) {
             now_S = getSym();
             tmpStr += " " + getStr() + " ";
             tmpStr += ConstExp_S();
             now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
+            dimension++;
         }
     }
 
@@ -319,7 +323,9 @@ string ConstDef_S() {
     if (tmp == ASSIGN) {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += ConstInitVal_S();
+        expCode = ConstInitVal_S();
+        tmpStr += expCode;
+        genAssignCode(name, expCode, dimension);
     }
     printParseResult_S("ConstDef_S");
     return tmpStr;
@@ -567,7 +573,9 @@ string Stmt_S() {
             tmpStr += Exp_S();
         } else {
             now_S = getSym();  //IDENFR
-            tmpStr += LVal_S();   // contains identifier
+            string name;
+            name = LVal_S();   // contains identifier
+            tmpStr += name;
             now_S = getSym(); // now_S == ASSIGN
             tmpStr += " " + getStr() + " ";
             tmp = peek();
@@ -579,8 +587,17 @@ string Stmt_S() {
                 now_S = getSym(); // now_S == RPARENT
                 tmpStr += " " + getStr() + " ";
                 //now_S = getSym(); // now_S == SEMICN
+                genScanfCode();
+                genAssignCode(name, "t0", 0);
             } else {
-                tmpStr += " " + Exp_S() + " ";
+                int dim = 0;
+                for (char i: name) {
+                    if (i == '(') dim++;
+                }
+                string expCode;
+                expCode = " " + Exp_S() + " ";
+                tmpStr += " " + expCode + " ";
+                genAssignCode(name, expCode, dim);
             }
         }
         now_S = getSym();

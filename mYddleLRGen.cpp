@@ -14,10 +14,14 @@ using namespace std;
 vector<string> poNo;
 vector<string> utils;
 
-void genString(string str) {
-    FILE *f = fopen("test.txt", "a");
-    fprintf(f, "%s\n", str.c_str());
+void printCode(const string& toFile, const string& format, const string& str) {
+    FILE *f = fopen(toFile.c_str(), "a");
+    fprintf(f, format.c_str(), str.c_str());
     fclose(f);
+}
+
+void genString(string str) {
+    printCode("test.txt", "%s\n", str);
 }
 
 string genExpCode(string str) {
@@ -48,9 +52,8 @@ string genExpCode(string str) {
             poNo.push_back(res);
         }
     }
-    FILE *f = fopen("test.txt", "a");
-    fprintf(f, "%s", mCode.c_str());
-    fclose(f);
+
+    printCode("test.txt", "%s", mCode);
     if (!poNo.empty()) {
         return poNo.back();
     }
@@ -58,9 +61,11 @@ string genExpCode(string str) {
 }
 
 void genVarCode(string str) {
-    FILE *f = fopen("test.txt", "a");
-    fprintf(f, "VAR int %s\n", str.c_str());
-    fclose(f);
+    printCode("test.txt", "VAR int %s\n", str);
+}
+
+void genConstCode(string str) {
+    printCode("test.txt", "CONST int %s\n", str);
 }
 
 void genAssignCode(string lval, string exp, int dim) {
@@ -134,6 +139,9 @@ void genPrintfCode(string strCon) {
     fclose(f);
 }
 
+void genScanfCode() {
+    printCode("test.txt", "READ %s\n", "t0");
+}
 
 bool isNum(string str) {
     for (int i = 0; i < str.size(); i++) {

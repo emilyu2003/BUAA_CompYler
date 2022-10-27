@@ -243,6 +243,105 @@ RBRACE }
 <VarDef>
 SEMICN ;
 <VarDecl>
+VOIDTK void
+<FuncType>
+IDENFR func1
+LPARENT (
+INTTK int
+IDENFR a
+<FuncFParam>
+COMMA ,
+INTTK int
+IDENFR b
+LBRACK [
+RBRACK ]
+<FuncFParam>
+COMMA ,
+INTTK int
+IDENFR c
+<FuncFParam>
+<FuncFParams>
+RPARENT )
+LBRACE {
+INTTK int
+IDENFR lll
+ASSIGN =
+INTCON 0
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 13245
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+<VarDef>
+SEMICN ;
+<VarDecl>
+RBRACE }
+<Block>
+<FuncDef>
+INTTK int
+<FuncType>
+IDENFR func2
+LPARENT (
+INTTK int
+IDENFR b
+<FuncFParam>
+<FuncFParams>
+RPARENT )
+LBRACE {
+INTTK int
+IDENFR lalrsg
+ASSIGN =
+INTCON 154
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+DIV /
+INTCON 9
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<InitVal>
+<VarDef>
+SEMICN ;
+<VarDecl>
+RETURNTK return
+IDENFR lalrsg
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+SEMICN ;
+<Stmt>
+RBRACE }
+<Block>
+<FuncDef>
 INTTK int
 MAINTK main
 LPARENT (
@@ -253,11 +352,38 @@ IDENFR a
 <VarDef>
 SEMICN ;
 <VarDecl>
+IDENFR a
+<LVal>
+ASSIGN =
+GETINTTK getint
+LPARENT (
+RPARENT )
+SEMICN ;
+<Stmt>
 IDENFR b
 <LVal>
 ASSIGN =
 INTCON 0
 <Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 25
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+DIV /
+IDENFR a
+<LVal>
 <PrimaryExp>
 <UnaryExp>
 <MulExp>
@@ -389,6 +515,51 @@ COMMA ,
 INTCON 5
 RBRACE }
 SEMICN ;
+VOIDTK void
+IDENFR func1
+LPARENT (
+INTTK int
+IDENFR a
+COMMA ,
+INTTK int
+IDENFR b
+LBRACK [
+RBRACK ]
+COMMA ,
+INTTK int
+IDENFR c
+RPARENT )
+LBRACE {
+INTTK int
+IDENFR lll
+ASSIGN =
+INTCON 0
+MULT *
+INTCON 13245
+SEMICN ;
+RBRACE }
+INTTK int
+IDENFR func2
+LPARENT (
+INTTK int
+IDENFR b
+RPARENT )
+LBRACE {
+INTTK int
+IDENFR lalrsg
+ASSIGN =
+INTCON 154
+MULT *
+INTCON 1
+PLUS +
+IDENFR a
+DIV /
+INTCON 9
+SEMICN ;
+RETURNTK return
+IDENFR lalrsg
+SEMICN ;
+RBRACE }
 INTTK int
 MAINTK main
 LPARENT (
@@ -397,9 +568,21 @@ LBRACE {
 INTTK int
 IDENFR a
 SEMICN ;
+IDENFR a
+ASSIGN =
+GETINTTK getint
+LPARENT (
+RPARENT )
+SEMICN ;
 IDENFR b
 ASSIGN =
 INTCON 0
+PLUS +
+INTCON 5
+MULT *
+INTCON 25
+DIV /
+IDENFR a
 SEMICN ;
 PRINTFTK printf
 LPARENT (
