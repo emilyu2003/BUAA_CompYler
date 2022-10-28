@@ -648,7 +648,7 @@ string Stmt_S() {
             } else {
                 int dim = 0;
                 for (char i: name) {
-                    if (i == '(') dim++;
+                    if (i == '[') dim++;
                 }
                 string expCode;
                 expCode = " " + Exp_S() + " ";

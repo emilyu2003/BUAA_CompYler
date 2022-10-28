@@ -31,6 +31,7 @@ string getLvalCode(string str) {
         if (str[i] == '[') {
             if (cnt1 == -1) {
                 name = str.substr(0, i);
+                name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
             }
             cnt1 = i;
         } else if (str[i] == ']') {
@@ -129,6 +130,7 @@ void genAssignCode(string lval, string exp, int dim) {
         fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
         fclose(f);
     } else {
+        lval = getLvalCode(lval);
         exp.erase(std::remove(exp.begin(), exp.end(), '\n'), exp.end());
         int pos = 1;
         while (pos < exp.size() && (exp[pos] == '{' || exp[pos] == ' ')) pos++;
@@ -136,6 +138,7 @@ void genAssignCode(string lval, string exp, int dim) {
         int rCnt = -1;
         for (int i = 0; i < exp.size(); i++) {
             if (exp[i] == '{') continue;
+            // int A[x][y] = {a, b, c};
             if (i > pos && (exp[i] == ',' || exp[i] == '}')) {
                 rCnt++;
                 string tmp = exp.substr(pos, i - pos);
@@ -146,6 +149,12 @@ void genAssignCode(string lval, string exp, int dim) {
                 while (i + 1 < exp.size() && exp[i + 1] == ' ') i++;
                 pos = i + 1;
             }
+        }
+        if(rCnt == -1) {    // A[x][y] = a + b;
+            tt = genExpCode(exp);
+            FILE *f = fopen("test.txt", "a");
+            fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
+            fclose(f);
         }
     }
     FILE *f = fopen("test.txt", "a");

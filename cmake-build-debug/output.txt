@@ -80,44 +80,6 @@ RBRACE }
 SEMICN ;
 <VarDecl>
 INTTK int
-IDENFR AAAA
-ASSIGN =
-IDENFR B
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-MULT *
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-<LVal>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-<VarDef>
-SEMICN ;
-<VarDecl>
-INTTK int
 IDENFR a
 ASSIGN =
 LPARENT (
@@ -365,6 +327,42 @@ INTCON 0
 <Exp>
 SEMICN ;
 <Stmt>
+IDENFR B
+LBRACK [
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RBRACK ]
+LBRACK [
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RBRACK ]
+<LVal>
+ASSIGN =
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+SEMICN ;
+<Stmt>
 RBRACE }
 <Block>
 <FuncDef>
@@ -543,19 +541,6 @@ RBRACE }
 RBRACE }
 SEMICN ;
 INTTK int
-IDENFR AAAA
-ASSIGN =
-IDENFR B
-LBRACK [
-INTCON 1
-MULT *
-INTCON 1
-RBRACK ]
-LBRACK [
-INTCON 1
-RBRACK ]
-SEMICN ;
-INTTK int
 IDENFR a
 ASSIGN =
 LPARENT (
@@ -645,6 +630,18 @@ SEMICN ;
 IDENFR lll
 ASSIGN =
 INTCON 0
+SEMICN ;
+IDENFR B
+LBRACK [
+INTCON 1
+MULT *
+INTCON 1
+RBRACK ]
+LBRACK [
+INTCON 1
+RBRACK ]
+ASSIGN =
+INTCON 2
 SEMICN ;
 RBRACE }
 INTTK int
