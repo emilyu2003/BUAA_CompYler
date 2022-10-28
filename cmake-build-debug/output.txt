@@ -278,6 +278,31 @@ INTCON 13245
 <UnaryExp>
 <MulExp>
 <AddExp>
+PLUS +
+IDENFR B
+LBRACK [
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RBRACK ]
+LBRACK [
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+RBRACK ]
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
 <Exp>
 <InitVal>
 <VarDef>
@@ -536,6 +561,14 @@ ASSIGN =
 INTCON 0
 MULT *
 INTCON 13245
+PLUS +
+IDENFR B
+LBRACK [
+INTCON 1
+RBRACK ]
+LBRACK [
+INTCON 1
+RBRACK ]
 SEMICN ;
 RBRACE }
 INTTK int

@@ -31,14 +31,43 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
+
+//union Idents;
+//
+//struct IntIdent {
+//    int value;
+//};
+//
+//struct ArrD1Ident {
+//    int arrLen;
+//    int value[100];
+//};
+//
+//struct ArrD2Ident {
+//    int arrLen1;
+//    int arrLen2;
+//    int value[100];
+//};
+//
+//struct IDENT;
+//
+//struct FuncIdent {
+//    int paramLen;
+//};
+//
+//union idents {
+//    struct IntIdent intIdent;
+//    struct ArrD1Ident arrD1Ident;
+//    struct ArrD2Ident arrD2Ident;
+//    struct FuncIdent funcIdent;
+//} ident;
 
 struct IDENT {
     std::string name;
-    int type;   // INT VOID ARR[], ARR[][], INT FUNC, VOID FUNC
-    int len[2]; // INT == [1, 0], VOID == [1, 0], ARR[n] == [n, 0], ARR[n][m] = [n, m], FUNC = [0, 0]
-    int paramLen;  // len of params
+    int type;
     int blockNum;
+    std::vector<int> value;
+    int paramLen;
 };
 
 void initIdentTable();
@@ -69,6 +98,8 @@ void appendConstARR2(std::string name);
 
 void appendIdent(IDENT ident);
 
+void updateFunc(std::string name, int len);
+
 bool ifReDefine(std::string name);
 
 bool ifExist(std::string name);
@@ -89,7 +120,9 @@ void enterBlock();
 
 void throwError(int code, int line);
 
-IDENT getIdent(std::string str);
+IDENT getIdentTemporarily(std::string name);
+
+IDENT getIdent(const std::string &name, int num);
 
 void printIdentTable();
 
@@ -98,5 +131,6 @@ void printTotalTable();
 extern std::vector<IDENT> identTable;
 extern std::vector<IDENT> totalTable;
 extern std::vector<int> identTableCnt;
+extern std::vector<int> tmpBlockNums;
 
 #endif //MAIN_CPP_IDENTTABLE_H

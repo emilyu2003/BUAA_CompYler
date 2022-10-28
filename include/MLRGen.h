@@ -4,9 +4,10 @@
 
 #ifndef MAIN_CPP_MLRGEN_H
 #define MAIN_CPP_MLRGEN_H
+
 #include <vector>
 
-void printCode(const std::string& toFile, const std::string& format, const std::string& str);
+void printCode(const std::string &toFile, const std::string &format, const std::string &str);
 
 std::string genExpCode(std::string str);
 
@@ -30,6 +31,8 @@ void genPrintfCode(std::string str);
 
 void genScanfCode();
 
+void genCallFuncCode(std::string name);
+
 void addIfCode();
 
 void addWhileCode();
@@ -39,4 +42,6 @@ void addArrCode();
 void genString(std::string str);
 
 extern std::vector<std::string> utils;
+extern int curBlockNum;
+
 #endif //MAIN_CPP_MLRGEN_H

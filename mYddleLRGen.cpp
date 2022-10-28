@@ -14,7 +14,7 @@ using namespace std;
 vector<string> poNo;
 vector<string> utils;
 
-void printCode(const string& toFile, const string& format, const string& str) {
+void printCode(const string &toFile, const string &format, const string &str) {
     FILE *f = fopen(toFile.c_str(), "a");
     fprintf(f, format.c_str(), str.c_str());
     fclose(f);
@@ -22,6 +22,15 @@ void printCode(const string& toFile, const string& format, const string& str) {
 
 void genString(string str) {
     printCode("test.txt", "%s\n", str);
+}
+
+void getVarName(string str) {
+    int dim = 0;
+    for (char i: str) {
+        if (str[i] == '[') {
+            dim++;
+        }
+    }
 }
 
 string genExpCode(string str) {
@@ -45,8 +54,8 @@ string genExpCode(string str) {
             } else {
                 tCnt++;
                 poNo.push_back("t" + to_string(tCnt));
-                mCode.append("t" + to_string(tCnt) + " ").append(res + " ")
-                        .append(a1 + " ").append(a2 + " ").append("\n");
+                mCode.append(res + " ").append(a1 + " ").append(a2 + " ")
+                        .append("t" + to_string(tCnt)).append("\n");
             }
         } else {
             poNo.push_back(res);
@@ -111,6 +120,12 @@ void genFuncParamCode(string type, string name) {
     FILE *f = fopen("test.txt", "a");
     fprintf(f, "PARAM %s %s\n", type.c_str(), name.c_str());
     fclose(f);
+}
+
+void genCallFuncCode(string name) {
+    for (int i = 0; i < utils.size(); i++) {
+
+    }
 }
 
 void genPrintfCode(string strCon) {

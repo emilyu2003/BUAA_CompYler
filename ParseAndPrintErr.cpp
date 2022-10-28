@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <string>
 #include <algorithm>
+#include <utility>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -106,7 +107,7 @@ int LVal() {
         throwError(ERROR_C, getErrorLine());
         //flag = 2;
     } else {
-        tmpLVal = getIdent(name);
+        tmpLVal = getIdentTemporarily(name);
     }
 
     int rtNum = INT_T;
@@ -545,11 +546,11 @@ IDENT FuncFParam() {
         }
     }
     if (dimension == 0) {
-        tmpIdent = {name, INT_T, {0, 0}};
+        tmpIdent = {name, INT_T};
     } else if (dimension == 2) {
-        tmpIdent = {name, ARRAY_T_D1, {0, 0}};
+        tmpIdent = {name, ARRAY_T_D1};
     } else {
-        tmpIdent = {name, ARRAY_T_D2, {0, 0}};
+        tmpIdent = {name, ARRAY_T_D2};
     }
     appendIdent(tmpIdent);
 
@@ -557,7 +558,7 @@ IDENT FuncFParam() {
     return tmpIdent;
 }
 
-int FuncFParams(int type, string name) {
+int FuncFParams(string name) {
     int paramCnt = 0;
     int tmp = peek();   // tmp == INTTK || RPARENT
     while (tmp != RPARENT && tmp != LBRACE) {
@@ -574,12 +575,12 @@ int FuncFParams(int type, string name) {
         paramCnt++;
         tmp = peek();
     }
-
+    updateFunc(std::move(name), paramCnt);
     printParseResult("FuncFParams");
     return 1;
 }
 
-int FuncDef(int type, string name) {
+int FuncDef(int type, const string& name) {
     if (ifReDefine(name)) {
         throwError(ERROR_B, getErrorLine());
     }
@@ -591,7 +592,7 @@ int FuncDef(int type, string name) {
     // now == LPARENT
     int tmp = peek();
     if (tmp != RPARENT && tmp != LBRACE) {
-        FuncFParams(type, name);
+        FuncFParams(name);
     }
     tmp = peek();
     if (tmp == RPARENT) {

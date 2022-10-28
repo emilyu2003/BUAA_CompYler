@@ -8,6 +8,7 @@
 #include "parseAndSemant.h"
 #include "base.h"
 #include "MLRGen.h"
+#include "IdentTable.h"
 #include <cstdio>
 #include <string>
 #include <algorithm>
@@ -16,7 +17,8 @@
 
 using namespace std;
 
-int now_S;
+int now_S, isFunc_S = 0;
+int tmpMaxBlockNum = 0;
 
 void printParseResult_S(const string &s) {
 
@@ -139,10 +141,14 @@ string Number_S() {
 }
 
 string FuncRParams_S() {
+    utils.clear();
     string tmpStr;
     int tmp = peek();   // tmp == IDENFR
     while (tmp != RPARENT) {    // TODO dont know how to get type of RPARAMS
-        tmpStr += Exp_S();
+        string expCode;
+        expCode = Exp_S();
+        tmpStr += expCode;
+        utils.push_back(expCode);
         now_S = getSym();  // now_S == COMMA
         tmpStr += " " + getStr() + " ";
         tmp = peek();
@@ -192,7 +198,9 @@ string UnaryExp_S() {
         tmpStr += UnaryExp_S();
     } else {
         if (tmp == IDENFR) {
+            string name;
             now_S = getSym(); // IDENFR
+            name = getStr();
             tmp = peek();
             if (tmp == LPARENT) {
                 tmpStr += " " + getStr() + " ";
@@ -201,6 +209,7 @@ string UnaryExp_S() {
                 tmp = peek();
                 if (tmp != RPARENT) {
                     tmpStr += FuncRParams_S();
+                    genCallFuncCode(name);
                 }
                 now_S = getSym(); // RPARENT
                 tmpStr += " " + getStr() + " ";
@@ -481,6 +490,9 @@ string FuncFParams_S() {
 }
 
 string FuncDef_S() {
+    tmpMaxBlockNum++;
+    tmpBlockNums.push_back(tmpMaxBlockNum);
+    isFunc_S = 1;
     // now_S == LPARENT
     string tmpStr;
     int tmp = peek();
@@ -616,6 +628,11 @@ string Stmt_S() {
 }
 
 string Block_S() {
+    if (!isFunc_S) {
+        tmpMaxBlockNum++;
+        tmpBlockNums.push_back(tmpMaxBlockNum);
+    }
+    isFunc_S = 0;
     string tmpStr;
     now_S = getSym(); // now_S == LBRACE
     tmpStr += " " + getStr() + " ";
@@ -635,6 +652,7 @@ string Block_S() {
     now_S = getSym();  // now_S == RBRACE
     tmpStr += " " + getStr() + " ";
 
+    tmpBlockNums.pop_back();
     printParseResult_S("Block_S");
     return tmpStr;
 }
@@ -661,6 +679,8 @@ string FuncType_S() {
 }
 
 string parseAndSemant() {
+    tmpBlockNums.clear();
+    tmpBlockNums.push_back(0);
     lexerPos = 0;
     string tmpStr;
     while (lexerPos < lexerLen) {
