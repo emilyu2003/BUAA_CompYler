@@ -48,7 +48,6 @@ int main() {
     lexerLen--;
 
     // parser
-    initIdentTable();
     correctFlag = true;
     parseAndErr();
     if (correctFlag) {

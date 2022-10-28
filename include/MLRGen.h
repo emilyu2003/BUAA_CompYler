@@ -7,9 +7,11 @@
 
 #include <vector>
 
-void printCode(const std::string &toFile, const std::string &format, const std::string &str);
+void printCode(std::string toFile, std::string format, std::string str);
 
 std::string genExpCode(std::string str);
+
+std::string getLvalCode(std::string str);
 
 bool isNum(std::string str);
 

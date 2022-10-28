@@ -7,107 +7,105 @@
 #include <cstdio>
 #include <algorithm>
 #include <iostream>
+#include <utility>
 #include <vector>
-#include <cstring>
 
 using namespace std;
 
 vector<IDENT> identTable;
 vector<int> identTableCnt;
-vector<IDENT> totalTable;
 int maxBlockNum = 0;
 vector<int> tmpBlockNums;
-int curBlockNum = 0;
-
-void initIdentTable() {
-    totalTable.clear();
-    tmpBlockNums.clear();
-    tmpBlockNums.push_back(0);
-    maxBlockNum = 0;
-}
-
-void newBlock() {
-    maxBlockNum++;
-    tmpBlockNums.push_back(maxBlockNum);
-    //printTotalTable();
-}
 
 int getBlockNum() {
     //printTotalTable();
     return tmpBlockNums.back();
 }
 
+void newBlock() {
+    maxBlockNum++;
+    tmpBlockNums.push_back(maxBlockNum);
+}
+
 void appendINT(string name) {
     IDENT tmp = {name, INT_T};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendConst(string name) {
     IDENT tmp = {name, CONST_T};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendARR1(string name) {
     IDENT tmp = {name, ARRAY_T_D1};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendARR2(string name) {
     IDENT tmp = {name, ARRAY_T_D2};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendConstARR1(string name) {
     IDENT tmp = {name, CONST_ARR_T_D1};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendConstARR2(string name) {
     IDENT tmp = {name, CONST_ARR_T_D2};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
-    totalTable.push_back(tmp);
 }
 
 void appendFUNC_INT(string name) {
     IDENT tmp = {name, FUNC_T_INT};
+    tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
     newBlock();
-    tmp.blockNum = getBlockNum();
-    totalTable.push_back(tmp);
     //printIdentTable();
 }
 
 void appendFUNC_VOID(string name) {
     IDENT tmp = {name, FUNC_T_VOID};
+    tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
     newBlock();
-    tmp.blockNum = getBlockNum();
-    totalTable.push_back(tmp);
     //printIdentTable();
 }
 
 void appendIdent(IDENT ident) {
     ident.blockNum = getBlockNum();
     identTable.push_back(ident);
-    totalTable.push_back(ident);
 }
 
 void updateFunc(string name, int len) {
-    IDENT func = getIdentTemporarily(name);
+    int funcPos = getIdentPos(name);
+    IDENT func = identTable[funcPos];
     func.paramLen = len;
+    identTable[funcPos] = func;
+}
+
+void updateArrD1(string name, string len1) {
+    int arrPos = getIdentPos(name);
+    IDENT arr = identTable[arrPos];
+    arr.len1 = (len1);
+    identTable[arrPos] = arr;
+}
+
+void updateArrD2(string name, string len1, string len2) {
+    int arrPos = getIdentPos(name);
+    IDENT arr = identTable[arrPos];
+    arr.len1 = len1;
+    arr.len2 = len2;
+    identTable[arrPos] = arr;
 }
 
 bool ifReDefine(string name) {
@@ -224,6 +222,15 @@ IDENT getIdentTemporarily(std::string name) {
     return {};
 }
 
+int getIdentPos(std::string name) {
+    for (int i = identTable.size() - 1; i >= 0; i--) {
+        if (identTable[i].name == name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void printIdentTable() {
     cout << "--------------------start size = " << identTable.size() << "----------------------\n";
     int k = 0;
@@ -236,22 +243,4 @@ void printIdentTable() {
         cout << identTable[i].name << " " << identTable[i].type << "\n";
     }
     cout << "----------------------end-------------------------\n";
-}
-
-void printTotalTable() {
-    cout << "----------------TOTAL TABLE----------------------\n";
-    for (int i = 0; i < totalTable.size(); i++) {
-        printf("%5d:", totalTable[i].blockNum);
-        cout << totalTable[i].name << " " << totalTable[i].type << "\n";
-    }
-    cout << "----------------------end-------------------------\n";
-}
-
-IDENT getIdent(const std::string& name, int num) {
-    for (int i = totalTable.size() - 1; i >= 0; i--) {
-        if (identTable[i].blockNum == num && identTable[i].name == name) {
-            return identTable[i];
-        }
-    }
-    return {};
 }

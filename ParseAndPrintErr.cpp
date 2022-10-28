@@ -20,7 +20,7 @@ bool funcVoid = false;
 int isFunc = 0;
 int isWhile = 0;
 
-void printParseResult(const string &s) {
+void printParseResult(string s) {
     string output = "<" + s + ">" + "\n";
     FILE *f = fopen("output.txt", "a");
     fprintf(f, "%s", output.c_str());
@@ -575,12 +575,12 @@ int FuncFParams(string name) {
         paramCnt++;
         tmp = peek();
     }
-    updateFunc(std::move(name), paramCnt);
+    updateFunc((name), paramCnt);
     printParseResult("FuncFParams");
     return 1;
 }
 
-int FuncDef(int type, const string& name) {
+int FuncDef(int type, string name) {
     if (ifReDefine(name)) {
         throwError(ERROR_B, getErrorLine());
     }
@@ -795,6 +795,9 @@ int FuncType() {
 }
 
 int parseAndErr() {
+    maxBlockNum = 0;
+    tmpBlockNums.clear();
+    tmpBlockNums.push_back(0);
     lexerPos = 0;
     while (lexerPos < lexerLen) {
         now = getSym();

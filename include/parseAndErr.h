@@ -4,7 +4,7 @@
 #include "IdentTable.h"
 
 int parseAndErr();
-void printParseResult(const std::string& s);
+void printParseResult(std::string s);
 int RelExp();
 int EqExp();
 int LAndExp();
@@ -29,7 +29,7 @@ int VarDef();
 int VarDecl();
 IDENT FuncFParam();
 int FuncFParams(std::string str);
-int FuncDef(int type, const std::string& str);
+int FuncDef(int type, std::string str);
 int Stmt();
 int Block();
 int MainFuncDef();

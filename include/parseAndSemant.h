@@ -7,7 +7,7 @@
 #include <string>
 
 std::string parseAndSemant();
-void printParseResult_S(const std::string& s);
+void printParseResult_S(std::string s);
 std::string RelExp_S();
 std::string EqExp_S();
 std::string LAndExp_S();
@@ -31,8 +31,8 @@ std::string InitVal_S();
 std::string VarDef_S();
 std::string VarDecl_S();
 std::string FuncFParam_S();
-std::string FuncFParams_S();
-std::string FuncDef_S();
+std::string FuncFParams_S(std::string name);
+std::string FuncDef_S(int type, std::string name);
 std::string Stmt_S();
 std::string Block_S();
 std::string MainFuncDef_S();

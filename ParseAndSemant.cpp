@@ -17,10 +17,10 @@
 
 using namespace std;
 
-int now_S, isFunc_S = 0;
-int tmpMaxBlockNum = 0;
+int now_S;
+int isFunc_S;
 
-void printParseResult_S(const string &s) {
+void printParseResult_S(string s) {
 
 }
 
@@ -328,6 +328,14 @@ string ConstDef_S() {
         }
     }
 
+    if (dimension == 0) {
+        appendConst(name);
+    } else if (dimension == 1) {
+        appendConstARR1(name);
+    } else if (dimension == 2) {
+        appendConstARR2(name);
+    }
+
     tmp = peek();
     if (tmp == ASSIGN) {
         now_S = getSym();
@@ -336,6 +344,7 @@ string ConstDef_S() {
         tmpStr += expCode;
         genAssignCode(name, expCode, dimension);
     }
+
     printParseResult_S("ConstDef_S");
     return tmpStr;
 }
@@ -393,10 +402,12 @@ string VarDef_S() {
     string name = getStr();
     tmpStr += " " + getStr() + " ";
     int tmp = peek();
+    string len1, len2;
     if (tmp == LBRACK) {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += ConstExp_S();
+        len1 = ConstExp_S();
+        tmpStr += len1;
         now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
@@ -404,11 +415,22 @@ string VarDef_S() {
         if (tmp == LBRACK) {
             now_S = getSym();
             tmpStr += " " + getStr() + " ";
-            tmpStr += ConstExp_S();
+            len2 = ConstExp_S();
+            tmpStr += len2;
             now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
             dimension++;
         }
+    }
+
+    if (dimension == 0) {
+        appendINT(name);
+    } else if (dimension == 1) {
+        appendARR1(name);
+        updateArrD1(name, len1);
+    } else if (dimension == 2) {
+        appendARR2(name);
+        updateArrD2(name, len1, len2);
     }
 
     tmp = peek();
@@ -445,9 +467,11 @@ string VarDecl_S() {
 
 string FuncFParam_S() {
     // now_S == INTTK
+    int dimension = 0;
     string tmpStr;
     tmpStr += getStr() + " ";
     now_S = getSym();  // now_S == IDENFR
+    string name = getStr();
     tmpStr += " " + getStr() + " ";
     int tmp = peek();
     if (tmp == LBRACK) {
@@ -456,6 +480,7 @@ string FuncFParam_S() {
         now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
+        dimension++;
         if (tmp == LBRACK) {
             now_S = getSym();  // now_S == LBRACK
             tmpStr += " " + getStr() + " ";
@@ -463,14 +488,27 @@ string FuncFParam_S() {
 
             now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
+            dimension++;
         }
     }
+
+    IDENT tmpIdent;
+    if (dimension == 0) {
+        tmpIdent = {name, INT_T};
+    } else if (dimension == 2) {
+        tmpIdent = {name, ARRAY_T_D1};
+    } else {
+        tmpIdent = {name, ARRAY_T_D2};
+    }
+    appendIdent(tmpIdent);
+
     genFuncParamCode("int", tmpStr.substr(3, tmpStr.size() - 3));
     printParseResult_S("FuncFParam_S");
     return tmpStr;
 }
 
-string FuncFParams_S() {
+string FuncFParams_S(string name) {
+    int paramCnt = 0;
     string tmpStr;
     int tmp = peek();   // tmp == INTTK || RPARENT
     while (tmp != RPARENT && tmp != LBRACE) {
@@ -482,26 +520,32 @@ string FuncFParams_S() {
             now_S = getSym();
             tmpStr += " " + getStr() + " ";
         }
+        paramCnt++;
         tmp = peek();
     }
 
+    updateFunc((name), paramCnt);
     printParseResult_S("FuncFParams_S");
     return tmpStr;
 }
 
-string FuncDef_S() {
-    tmpMaxBlockNum++;
-    tmpBlockNums.push_back(tmpMaxBlockNum);
-    isFunc_S = 1;
+string FuncDef_S(int type, string name) {
     // now_S == LPARENT
+    if (type == INT_T) {
+        appendFUNC_INT(name);
+    } else {
+        appendFUNC_VOID(name);
+    }
+
     string tmpStr;
     int tmp = peek();
     if (tmp != RPARENT && tmp != LBRACE) {
-        tmpStr += FuncFParams_S();
+        tmpStr += FuncFParams_S(name);
     }
     now_S = getSym();  // now_S == RPARENT
     tmpStr += " " + getStr() + " ";
 
+    isFunc_S = 1;
     tmpStr += Block_S();
     printParseResult_S("FuncDef_S");
     return tmpStr;
@@ -628,9 +672,8 @@ string Stmt_S() {
 }
 
 string Block_S() {
-    if (!isFunc_S) {
-        tmpMaxBlockNum++;
-        tmpBlockNums.push_back(tmpMaxBlockNum);
+    if (isFunc_S != 1) {
+        enterBlock();
     }
     isFunc_S = 0;
     string tmpStr;
@@ -652,7 +695,7 @@ string Block_S() {
     now_S = getSym();  // now_S == RBRACE
     tmpStr += " " + getStr() + " ";
 
-    tmpBlockNums.pop_back();
+    endBlock();
     printParseResult_S("Block_S");
     return tmpStr;
 }
@@ -679,8 +722,11 @@ string FuncType_S() {
 }
 
 string parseAndSemant() {
+    maxBlockNum = 0;
     tmpBlockNums.clear();
     tmpBlockNums.push_back(0);
+    identTable.clear();
+    identTableCnt.clear();
     lexerPos = 0;
     string tmpStr;
     while (lexerPos < lexerLen) {
@@ -702,9 +748,10 @@ string parseAndSemant() {
                     now_S = getSym(); // now_S == IDENFR
                     tmpStr += " " + getStr() + " ";
                     genFuncDeclCode("int", getStr());
+                    string name = getStr();
                     now_S = getSym(); // now_S == (
                     tmpStr += " " + getStr() + " ";
-                    tmpStr += FuncDef_S();
+                    tmpStr += FuncDef_S(INT_T, name);
                 } else {
                     // now_S == INTTK
                     tmpStr += VarDecl_S();
@@ -715,9 +762,10 @@ string parseAndSemant() {
             now_S = getSym();  // now_S == IDENFR
             tmpStr += " " + getStr() + " ";
             genFuncDeclCode("void", getStr());
+            string name = getStr();
             now_S = getSym();  // now_S == (
             tmpStr += " " + getStr() + " ";
-            tmpStr += FuncDef_S();
+            tmpStr += FuncDef_S(VOID_T, name);
         }
     }
     printParseResult_S("CompUnit");

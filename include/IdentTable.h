@@ -15,19 +15,19 @@
 #define CONST_ARR_T_D1 8
 #define CONST_ARR_T_D2 8
 
-#define ERROR_A -1
-#define ERROR_B -2
-#define ERROR_C -3
-#define ERROR_D -4
-#define ERROR_E -5
-#define ERROR_F -6
-#define ERROR_G -7
-#define ERROR_H -8
-#define ERROR_I -9
-#define ERROR_J -10
-#define ERROR_K -11
-#define ERROR_L -12
-#define ERROR_M -13
+#define ERROR_A (-1)
+#define ERROR_B (-2)
+#define ERROR_C (-3)
+#define ERROR_D (-4)
+#define ERROR_E (-5)
+#define ERROR_F (-6)
+#define ERROR_G (-7)
+#define ERROR_H (-8)
+#define ERROR_I (-9)
+#define ERROR_J (-10)
+#define ERROR_K (-11)
+#define ERROR_L (-12)
+#define ERROR_M (-13)
 
 #include <string>
 #include <vector>
@@ -68,13 +68,14 @@ struct IDENT {
     int blockNum;
     std::vector<int> value;
     int paramLen;
+    std::vector<IDENT> params;
+    std::string len1;
+    std::string len2;
 };
 
-void initIdentTable();
+int getBlockNum();
 
 void newBlock();
-
-int getBlockNum();
 
 void appendINT(std::string name);
 
@@ -100,6 +101,10 @@ void appendIdent(IDENT ident);
 
 void updateFunc(std::string name, int len);
 
+void updateArrD1(std::string name, std::string len1);
+
+void updateArrD2(std::string name, std::string len1, std::string len2);
+
 bool ifReDefine(std::string name);
 
 bool ifExist(std::string name);
@@ -122,15 +127,14 @@ void throwError(int code, int line);
 
 IDENT getIdentTemporarily(std::string name);
 
-IDENT getIdent(const std::string &name, int num);
+int getIdentPos(std::string name);
 
 void printIdentTable();
 
-void printTotalTable();
 
 extern std::vector<IDENT> identTable;
-extern std::vector<IDENT> totalTable;
 extern std::vector<int> identTableCnt;
 extern std::vector<int> tmpBlockNums;
+extern int maxBlockNum;
 
 #endif //MAIN_CPP_IDENTTABLE_H
