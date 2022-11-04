@@ -13,7 +13,7 @@
 #define FUNC_T_VOID 6
 #define CONST_T 7
 #define CONST_ARR_T_D1 8
-#define CONST_ARR_T_D2 8
+#define CONST_ARR_T_D2 9
 
 #define ERROR_A (-1)
 #define ERROR_B (-2)
@@ -66,16 +66,19 @@ struct IDENT {
     std::string name;
     int type;
     int blockNum;
-    std::vector<int> value;
     int paramLen;
     std::vector<IDENT> params;
     std::string len1;
     std::string len2;
+    bool value_valid;
+    std::vector<int> value;
 };
 
 int getBlockNum();
 
 void newBlock();
+
+void updateValue(IDENT ident);
 
 void appendINT(std::string name);
 
@@ -128,6 +131,8 @@ void throwError(int code, int line);
 IDENT getIdentTemporarily(std::string name);
 
 int getIdentPos(std::string name);
+
+std::string getName(std::string a);
 
 void printIdentTable();
 

@@ -1,85 +1,4 @@
 INTTK int
-IDENFR B
-LBRACK [
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<ConstExp>
-RBRACK ]
-LBRACK [
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<ConstExp>
-RBRACK ]
-ASSIGN =
-LBRACE {
-LBRACE {
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-RBRACE }
-<InitVal>
-COMMA ,
-LBRACE {
-INTCON 10
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-PLUS +
-INTCON 23
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 12
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-MULT *
-INTCON 5
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-RBRACE }
-<InitVal>
-RBRACE }
-<InitVal>
-<VarDef>
-SEMICN ;
-<VarDecl>
-INTTK int
 IDENFR a
 ASSIGN =
 LPARENT (
@@ -90,33 +9,32 @@ INTCON 1
 <MulExp>
 <AddExp>
 PLUS +
+MINU -
+<UnaryOp>
+PLUS +
+<UnaryOp>
+MINU -
+<UnaryOp>
+PLUS +
+<UnaryOp>
+MINU -
+<UnaryOp>
+PLUS +
+<UnaryOp>
 INTCON 1
 <Number>
 <PrimaryExp>
+<UnaryExp>
+<UnaryExp>
+<UnaryExp>
+<UnaryExp>
+<UnaryExp>
+<UnaryExp>
 <UnaryExp>
 <MulExp>
 <AddExp>
 PLUS +
 INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RPARENT )
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-MULT *
-LPARENT (
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-DIV /
-INTCON 5
 <Number>
 <PrimaryExp>
 <UnaryExp>
@@ -143,15 +61,12 @@ INTCON 100
 <UnaryExp>
 <MulExp>
 MULT *
+MINU -
+<UnaryOp>
 IDENFR a
 <LVal>
 <PrimaryExp>
 <UnaryExp>
-<MulExp>
-MOD %
-INTCON 5
-<Number>
-<PrimaryExp>
 <UnaryExp>
 <MulExp>
 <AddExp>
@@ -181,80 +96,12 @@ IDENFR D
 <ConstDef>
 SEMICN ;
 <ConstDecl>
-INTTK int
-IDENFR A
-LBRACK [
-INTCON 5
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<ConstExp>
-RBRACK ]
-ASSIGN =
-LBRACE {
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 3
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 4
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-COMMA ,
-INTCON 5
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-<InitVal>
-RBRACE }
-<InitVal>
-<VarDef>
-SEMICN ;
-<VarDecl>
 VOIDTK void
 <FuncType>
 IDENFR func1
 LPARENT (
 INTTK int
 IDENFR a
-<FuncFParam>
-COMMA ,
-INTTK int
-IDENFR b
-LBRACK [
-RBRACK ]
 <FuncFParam>
 COMMA ,
 INTTK int
@@ -274,31 +121,6 @@ INTCON 0
 MULT *
 INTCON 13245
 <Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-PLUS +
-IDENFR B
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-<LVal>
 <PrimaryExp>
 <UnaryExp>
 <MulExp>
@@ -327,40 +149,7 @@ INTCON 0
 <Exp>
 SEMICN ;
 <Stmt>
-IDENFR B
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-MULT *
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-LBRACK [
-INTCON 1
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
-RBRACK ]
-<LVal>
-ASSIGN =
-INTCON 2
-<Number>
-<PrimaryExp>
-<UnaryExp>
-<MulExp>
-<AddExp>
-<Exp>
+RETURNTK return
 SEMICN ;
 <Stmt>
 RBRACE }
@@ -438,6 +227,52 @@ ASSIGN =
 GETINTTK getint
 LPARENT (
 RPARENT )
+SEMICN ;
+<Stmt>
+IDENFR b
+<LVal>
+ASSIGN =
+INTCON 1
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+IDENFR func2
+LPARENT (
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
+<FuncRParams>
+RPARENT )
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 5
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+<Exp>
 SEMICN ;
 <Stmt>
 IDENFR b
@@ -514,47 +349,20 @@ RBRACE }
 <MainFuncDef>
 <CompUnit>
 INTTK int
-IDENFR B
-LBRACK [
-INTCON 2
-RBRACK ]
-LBRACK [
-INTCON 2
-RBRACK ]
-ASSIGN =
-LBRACE {
-LBRACE {
-INTCON 1
-COMMA ,
-INTCON 2
-RBRACE }
-COMMA ,
-LBRACE {
-INTCON 10
-PLUS +
-INTCON 23
-COMMA ,
-INTCON 12
-MULT *
-INTCON 5
-RBRACE }
-RBRACE }
-SEMICN ;
-INTTK int
 IDENFR a
 ASSIGN =
 LPARENT (
 INTCON 1
 PLUS +
+MINU -
+PLUS +
+MINU -
+PLUS +
+MINU -
+PLUS +
 INTCON 1
 PLUS +
 INTCON 2
-RPARENT )
-MULT *
-LPARENT (
-INTCON 2
-DIV /
-INTCON 5
 RPARENT )
 COMMA ,
 IDENFR b
@@ -563,9 +371,8 @@ IDENFR c
 ASSIGN =
 INTCON 100
 MULT *
+MINU -
 IDENFR a
-MOD %
-INTCON 5
 SEMICN ;
 CONSTTK const
 INTTK int
@@ -577,34 +384,11 @@ IDENFR F
 COMMA ,
 IDENFR D
 SEMICN ;
-INTTK int
-IDENFR A
-LBRACK [
-INTCON 5
-RBRACK ]
-ASSIGN =
-LBRACE {
-INTCON 1
-COMMA ,
-INTCON 2
-COMMA ,
-INTCON 3
-COMMA ,
-INTCON 4
-COMMA ,
-INTCON 5
-RBRACE }
-SEMICN ;
 VOIDTK void
 IDENFR func1
 LPARENT (
 INTTK int
 IDENFR a
-COMMA ,
-INTTK int
-IDENFR b
-LBRACK [
-RBRACK ]
 COMMA ,
 INTTK int
 IDENFR c
@@ -617,31 +401,13 @@ INTCON 0
 MULT *
 INTCON 13245
 PLUS +
-IDENFR B
-LBRACK [
-INTCON 1
-RBRACK ]
-LBRACK [
-INTCON 1
-RBRACK ]
-PLUS +
 INTCON 5
 SEMICN ;
 IDENFR lll
 ASSIGN =
 INTCON 0
 SEMICN ;
-IDENFR B
-LBRACK [
-INTCON 1
-MULT *
-INTCON 1
-RBRACK ]
-LBRACK [
-INTCON 1
-RBRACK ]
-ASSIGN =
-INTCON 2
+RETURNTK return
 SEMICN ;
 RBRACE }
 INTTK int
@@ -679,6 +445,21 @@ ASSIGN =
 GETINTTK getint
 LPARENT (
 RPARENT )
+SEMICN ;
+IDENFR b
+ASSIGN =
+INTCON 1
+PLUS +
+IDENFR func2
+LPARENT (
+IDENFR a
+PLUS +
+INTCON 5
+MULT *
+IDENFR a
+RPARENT )
+MULT *
+INTCON 5
 SEMICN ;
 IDENFR b
 ASSIGN =

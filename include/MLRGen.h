@@ -11,11 +11,15 @@ void printCode(std::string toFile, std::string format, std::string str);
 
 std::string genExpCode(std::string str);
 
+std::string genCondCode(std::string str);
+
 std::string getLvalCode(std::string str);
 
 bool isNum(std::string str);
 
 bool isCalSym(std::string s1);
+
+bool isRelSym(std::string res);
 
 int calculate(std::string s1, std::string s2, std::string s3);
 
@@ -31,17 +35,29 @@ void genAssignCode(std::string str, std::string str1, int dim);
 
 void genPrintfCode(std::string str);
 
-void genScanfCode();
+std::string genScanfCode();
 
-void genCallFuncCode(std::string name);
+std::string genCallFuncCode(std::string name);
 
-void addIfCode();
+void genAndCode(std::string str, std::string endStr);
 
-void addWhileCode();
+std::string genRelCode(std::string str, std::string endStr);
 
-void addArrCode();
+void genIfCode(std::string cond, std::string startIf, std::string startElse, std::string endIf);
+
+void genWhileCode();
+
+void genArrCode();
+
+bool cmpPriority(std::string a, std::string b);
+
+std::string dealUnaryOp(std::string str);
+
+void genReturnCode(std::string str);
 
 void genString(std::string str);
+
+bool cmpPriority(std::string a, std::string b);
 
 extern std::vector<std::string> utils;
 extern int curBlockNum;

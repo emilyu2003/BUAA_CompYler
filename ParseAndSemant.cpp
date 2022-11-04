@@ -19,6 +19,8 @@ using namespace std;
 
 int now_S;
 int isFunc_S;
+vector<string> whileEndCnt;
+vector<string> whileStartCnt;
 
 void printParseResult_S(string s) {
 
@@ -65,9 +67,8 @@ string LAndExp_S() {
     while (tmp == AND) {
         printParseResult_S("LAndExp_S");
         now_S = getSym();
-        string sym = getStr();
+        tmpStr += getStr();
         tmpStr += " " + EqExp_S() + " ";
-        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
@@ -82,9 +83,8 @@ string LOrExp_S() {
     while (tmp == OR) {
         printParseResult_S("LOrExp_S");
         now_S = getSym();
-        string sym = getStr();
+        tmpStr += getStr();
         tmpStr += " " + LAndExp_S() + " ";
-        tmpStr += " " + sym + " ";
         tmp = peek();
     }
 
@@ -149,8 +149,11 @@ string FuncRParams_S() {
         expCode = Exp_S();
         tmpStr += expCode;
         utils.push_back(expCode);
-        now_S = getSym();  // now_S == COMMA
-        tmpStr += " " + getStr() + " ";
+        tmp = peek();
+        if (tmp == COMMA) {
+            now_S = getSym();  // now_S == COMMA
+            tmpStr += " " + getStr() + " ";
+        }
         tmp = peek();
     }
     printParseResult_S("FuncRParams_S");
@@ -190,12 +193,13 @@ string UnaryOp_S() {
 }
 
 string UnaryExp_S() {
-    string tmpStr;
+    string tmpStr, ttmpStr;
+    int flagFunc = 0;
     int tmp = peek();
     if (tmp == PLUS || tmp == MINU || tmp == NOT) {
         //now_S = getSym();
         tmpStr += UnaryOp_S();
-        tmpStr += UnaryExp_S();
+        tmpStr += UnaryExp_S() + " ";
     } else {
         if (tmp == IDENFR) {
             string name;
@@ -203,24 +207,28 @@ string UnaryExp_S() {
             name = getStr();
             tmp = peek();
             if (tmp == LPARENT) {
-                tmpStr += " " + getStr() + " ";
+                tmpStr += getStr() + " ";
                 now_S = getSym(); // LPARENT
                 tmpStr += " " + getStr() + " ";
                 tmp = peek();
                 if (tmp != RPARENT) {
-                    tmpStr += FuncRParams_S();
-                    genCallFuncCode(name);
+                    FuncRParams_S();
+                    tmpStr += FuncRParams_S() + " ";
+                    //tmpStr += genCallFuncCode(name);
+                    flagFunc = 1;
+                    ttmpStr += genCallFuncCode(name);
                 }
                 now_S = getSym(); // RPARENT
                 tmpStr += " " + getStr() + " ";
             } else {
-                tmpStr += " " + PrimaryExp_S() + " ";
+                tmpStr += PrimaryExp_S() + " ";
             }
         } else {
-            tmpStr += " " + PrimaryExp_S() + " ";
+            tmpStr += PrimaryExp_S() + " ";
         }
     }
     printParseResult_S("UnaryExp_S");
+    if (flagFunc) return ttmpStr;
     return tmpStr;
 }
 
@@ -555,6 +563,11 @@ string Stmt_S() {
     string tmpStr;
     int tmp = peek();
     if (tmp == BREAKTK || tmp == CONTINUETK) {
+        if (tmp == BREAKTK) {
+            genString("j " + whileEndCnt.back());
+        } else {
+            genString("j " + whileStartCnt.back());
+        }
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
         now_S = getSym();  // now_S == SEMICN
@@ -563,11 +576,14 @@ string Stmt_S() {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
         tmp = peek();
+        string expCode;
         if (tmp != SEMICN) {
-            tmpStr += Exp_S();
+            expCode = Exp_S();
+            tmpStr += expCode;
         }
         now_S = getSym(); // now_S == SEMICN
         tmpStr += " " + getStr() + " ";
+        genReturnCode(expCode);
     } else if (tmp == PRINTFTK) {
         now_S = getSym(); // now_S == PRINTFTK
         tmpStr += " " + getStr() + " ";
@@ -598,21 +614,35 @@ string Stmt_S() {
 
         genPrintfCode(strCon);
     } else if (tmp == IFTK) {
+        string ifStartStr = getName("START_IF_");
+        string ifEndStr = getName("END_IF_");
+        string elseStartStr = getName("START_ELSE_");
+        string cond;
         now_S = getSym();  // now_S == IFTK
         tmpStr += " " + getStr() + " ";
         now_S = getSym(); // now_S == LPARENT
         tmpStr += " " + getStr() + " ";
-        tmpStr += Cond_S();
+        cond = Cond_S();
+        tmpStr += cond;
         now_S = getSym(); // now_S == RPARENT
+
+        genIfCode(cond, ifStartStr, elseStartStr, ifEndStr);
+        genString(ifStartStr + ":");
+
         tmpStr += " " + getStr() + " ";
         tmpStr += Stmt_S();
         tmp = peek();
         if (tmp == ELSETK) {
+            genString(elseStartStr + ":");
             now_S = getSym(); // now_S == ELSETK
             tmpStr += " " + getStr() + " ";
             tmpStr += Stmt_S();
         }
+        genString(ifEndStr + ":");
     } else if (tmp == WHILETK) {
+        whileStartCnt.push_back(getName("START_WHILE_"));
+        whileEndCnt.push_back(getName("END_WHILE_"));
+        genString(whileStartCnt.back() + ":");
         now_S = getSym();  // now_S == WHILETK
         tmpStr += " " + getStr() + " ";
         now_S = getSym(); // now_S == LPARENT
@@ -622,6 +652,9 @@ string Stmt_S() {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
         tmpStr += Stmt_S();
+        genString(whileEndCnt.back() + ":");
+        whileEndCnt.pop_back();
+        whileStartCnt.pop_back();
     } else if (tmp == LBRACE) {
         tmpStr += Block_S();
     } else if (tmp == IDENFR) {
@@ -643,8 +676,8 @@ string Stmt_S() {
                 now_S = getSym(); // now_S == RPARENT
                 tmpStr += " " + getStr() + " ";
                 //now_S = getSym(); // now_S == SEMICN
-                genScanfCode();
-                genAssignCode(name, "t0", 0);
+                string tt = genScanfCode();
+                genAssignCode(name, tt, 0);
             } else {
                 int dim = 0;
                 for (char i: name) {
@@ -704,7 +737,7 @@ string MainFuncDef_S() {
     // now_S == INTTK
     string tmpStr;
     now_S = getSym(); // now_S == MAINTK
-    genString("\nMAIN");
+    genString("\nMAIN:");
     tmpStr += " " + getStr() + " ";
     now_S = getSym(); // now_S == LPARENT
     tmpStr += " " + getStr() + " ";

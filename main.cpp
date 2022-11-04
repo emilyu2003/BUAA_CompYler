@@ -7,6 +7,7 @@
 #include "parseAndErr.h"
 #include "parseAndSemant.h"
 #include "base.h"
+#include "TLRGen.h"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ Lexer lexerOutput[1000005];
 bool correctFlag;
 
 int main() {
-    freopen("testfile.txt", "r", stdin);
+    //freopen("testfile.txt", "r", stdin);
 
     //clear file
     FILE *f = fopen("output.txt", "w");
@@ -28,9 +29,10 @@ int main() {
     f = fopen("test.txt", "w");
     fclose(f);
 
+    f = fopen("testfile.txt", "r");
     // read code
     string tmp;
-    while (fgets(line, 500, stdin) != NULL) {
+    while (fgets(line, 500, f) != NULL) {
         tmp.clear();
         for (int i = 0; i < strlen(line); i++) {
             tmp += line[i];
@@ -39,6 +41,7 @@ int main() {
         inputCode += tmp;
     }
     inputLen = inputCode.size();
+    fclose(f);
 
     // lexer
     initLexer();
@@ -55,5 +58,10 @@ int main() {
     } else {
         printf("plz check your syntax\n");
     }
+
+    // generator
+    printMiddleCode();
+    mipsGen();
+
     return 0;
 }

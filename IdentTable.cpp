@@ -16,6 +16,7 @@ vector<IDENT> identTable;
 vector<int> identTableCnt;
 int maxBlockNum = 0;
 vector<int> tmpBlockNums;
+vector<string> totalName;
 
 int getBlockNum() {
     //printTotalTable();
@@ -27,40 +28,58 @@ void newBlock() {
     tmpBlockNums.push_back(maxBlockNum);
 }
 
+void updateValue(IDENT ident) {
+    int pos = getIdentPos(ident.name);
+    identTable[pos].value_valid = 1;
+    identTable[pos].value = ident.value;
+}
+
 void appendINT(string name) {
     IDENT tmp = {name, INT_T};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendConst(string name) {
     IDENT tmp = {name, CONST_T};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendARR1(string name) {
     IDENT tmp = {name, ARRAY_T_D1};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendARR2(string name) {
     IDENT tmp = {name, ARRAY_T_D2};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendConstARR1(string name) {
     IDENT tmp = {name, CONST_ARR_T_D1};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendConstARR2(string name) {
     IDENT tmp = {name, CONST_ARR_T_D2};
+    tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
+    totalName.push_back(name);
 }
 
 void appendFUNC_INT(string name) {
@@ -70,6 +89,7 @@ void appendFUNC_INT(string name) {
     identTableCnt.push_back(identTable.size()); // next block
     newBlock();
     //printIdentTable();
+    totalName.push_back(name);
 }
 
 void appendFUNC_VOID(string name) {
@@ -79,11 +99,13 @@ void appendFUNC_VOID(string name) {
     identTableCnt.push_back(identTable.size()); // next block
     newBlock();
     //printIdentTable();
+    totalName.push_back(name);
 }
 
 void appendIdent(IDENT ident) {
     ident.blockNum = getBlockNum();
     identTable.push_back(ident);
+    totalName.push_back(ident.name);
 }
 
 void updateFunc(string name, int len) {
@@ -91,6 +113,7 @@ void updateFunc(string name, int len) {
     IDENT func = identTable[funcPos];
     func.paramLen = len;
     identTable[funcPos] = func;
+    totalName.push_back(name);
 }
 
 void updateArrD1(string name, string len1) {
@@ -229,6 +252,22 @@ int getIdentPos(std::string name) {
         }
     }
     return -1;
+}
+
+string getName(string a) {
+    int flag = 0;
+    for (int t = 0; t < 1000; t++) {
+        string str = a + to_string(t);
+        for (int i = 0; i < totalName.size(); i++) {
+            if (str == totalName[i]) break;
+            if (i == totalName.size() - 1) flag = 1;
+        }
+        if (flag) {
+            totalName.push_back(str);
+            return str;
+        }
+    }
+    return a;
 }
 
 void printIdentTable() {
