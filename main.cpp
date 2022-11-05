@@ -28,6 +28,8 @@ int main() {
     fclose(f);
     f = fopen("test.txt", "w");
     fclose(f);
+    f = fopen("mips.txt", "w");
+    fclose(f);
 
     f = fopen("testfile.txt", "r");
     // read code
@@ -60,6 +62,7 @@ int main() {
     }
 
     // generator
+    initGenerator();
     printMiddleCode();
     mipsGen();
 

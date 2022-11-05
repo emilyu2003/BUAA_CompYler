@@ -315,7 +315,6 @@ string ConstDef_S() {
     }
     now_S = getSym();
     tmpStr += " " + getStr() + " ";
-    genConstCode(getStr());
     string name = getStr();
     int tmp = peek();
     if (tmp == LBRACK) {
@@ -343,6 +342,7 @@ string ConstDef_S() {
     } else if (dimension == 2) {
         appendConstARR2(name);
     }
+    genConstCode(name);
 
     tmp = peek();
     if (tmp == ASSIGN) {
@@ -406,7 +406,6 @@ string VarDef_S() {
     int dimension = 0;
     string tmpStr;
     now_S = getSym();  // now_S = IDENFR
-    genVarCode(getStr());
     string name = getStr();
     tmpStr += " " + getStr() + " ";
     int tmp = peek();
@@ -440,6 +439,8 @@ string VarDef_S() {
         appendARR2(name);
         updateArrD2(name, len1, len2);
     }
+
+    genVarCode(name);
 
     tmp = peek();
     string expCode;
@@ -760,6 +761,7 @@ string parseAndSemant() {
     tmpBlockNums.push_back(0);
     identTable.clear();
     identTableCnt.clear();
+    tAssign = getName("t_");
     lexerPos = 0;
     string tmpStr;
     while (lexerPos < lexerLen) {

@@ -2,12 +2,12 @@ int a = (1 + -+-+-+ 1 +2), b, c = 100 * -a;
 const int K = 1000, F, D;
 
 void func1(int a, int c) {
-    int lll = 0 *13245 + 5;
-    lll = 0;
+    int lll = 0 *13245 + 5 + a - c;
+    lll = 3/2*4;
     return;
 }
 
-int func2(int b) {
+int func222(int b) {
     int lalrsg = 154*1 + a / 9;
     return lalrsg;
 }
@@ -15,7 +15,7 @@ int func2(int b) {
 int main() {
     int a;
     a = getint();
-    b = 1 + func2(a + 5 * a) * 5;
+    b = 1 + func222(a + 5 * a) * 5;
 
     /*
     while(a < 5) {
@@ -30,6 +30,6 @@ int main() {
 
     b = 0 + 5 * 25 / a;
     printf("hello world!\n");
-    printf("test%d : %d!\n" ,a, b);
+    printf("test%d : %d!\n" ,a + b, b);
     return 0;
 }

@@ -132,6 +132,20 @@ INTCON 5
 <UnaryExp>
 <MulExp>
 <AddExp>
+PLUS +
+IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+MINU -
+IDENFR c
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
 <Exp>
 <InitVal>
 <VarDef>
@@ -140,7 +154,19 @@ SEMICN ;
 IDENFR lll
 <LVal>
 ASSIGN =
-INTCON 0
+INTCON 3
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+DIV /
+INTCON 2
+<Number>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+MULT *
+INTCON 4
 <Number>
 <PrimaryExp>
 <UnaryExp>
@@ -157,7 +183,7 @@ RBRACE }
 <FuncDef>
 INTTK int
 <FuncType>
-IDENFR func2
+IDENFR func222
 LPARENT (
 INTTK int
 IDENFR b
@@ -239,7 +265,7 @@ INTCON 1
 <MulExp>
 <AddExp>
 PLUS +
-IDENFR func2
+IDENFR func222
 LPARENT (
 IDENFR a
 <LVal>
@@ -317,6 +343,13 @@ LPARENT (
 STRCON "test%d : %d!\n"
 COMMA ,
 IDENFR a
+<LVal>
+<PrimaryExp>
+<UnaryExp>
+<MulExp>
+<AddExp>
+PLUS +
+IDENFR b
 <LVal>
 <PrimaryExp>
 <UnaryExp>
@@ -402,16 +435,24 @@ MULT *
 INTCON 13245
 PLUS +
 INTCON 5
+PLUS +
+IDENFR a
+MINU -
+IDENFR c
 SEMICN ;
 IDENFR lll
 ASSIGN =
-INTCON 0
+INTCON 3
+DIV /
+INTCON 2
+MULT *
+INTCON 4
 SEMICN ;
 RETURNTK return
 SEMICN ;
 RBRACE }
 INTTK int
-IDENFR func2
+IDENFR func222
 LPARENT (
 INTTK int
 IDENFR b
@@ -450,7 +491,7 @@ IDENFR b
 ASSIGN =
 INTCON 1
 PLUS +
-IDENFR func2
+IDENFR func222
 LPARENT (
 IDENFR a
 PLUS +
@@ -481,6 +522,8 @@ LPARENT (
 STRCON "test%d : %d!\n"
 COMMA ,
 IDENFR a
+PLUS +
+IDENFR b
 COMMA ,
 IDENFR b
 RPARENT )

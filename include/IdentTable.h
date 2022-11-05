@@ -32,36 +32,6 @@
 #include <string>
 #include <vector>
 
-//union Idents;
-//
-//struct IntIdent {
-//    int value;
-//};
-//
-//struct ArrD1Ident {
-//    int arrLen;
-//    int value[100];
-//};
-//
-//struct ArrD2Ident {
-//    int arrLen1;
-//    int arrLen2;
-//    int value[100];
-//};
-//
-//struct IDENT;
-//
-//struct FuncIdent {
-//    int paramLen;
-//};
-//
-//union idents {
-//    struct IntIdent intIdent;
-//    struct ArrD1Ident arrD1Ident;
-//    struct ArrD2Ident arrD2Ident;
-//    struct FuncIdent funcIdent;
-//} ident;
-
 struct IDENT {
     std::string name;
     int type;
@@ -72,6 +42,7 @@ struct IDENT {
     std::string len2;
     bool value_valid;
     std::vector<int> value;
+    std::string genName;
 };
 
 int getBlockNum();
@@ -87,10 +58,6 @@ void appendConst(std::string name);
 void appendFUNC_INT(std::string name);
 
 void appendFUNC_VOID(std::string name);
-
-//void updateFUNC_INT(std::string name, std::vector<IDENT> tmp);
-
-//void updateFUNC_VOID(std::string name, std::vector<IDENT> tmp);
 
 void appendARR1(std::string name);
 
@@ -135,7 +102,6 @@ int getIdentPos(std::string name);
 std::string getName(std::string a);
 
 void printIdentTable();
-
 
 extern std::vector<IDENT> identTable;
 extern std::vector<int> identTableCnt;

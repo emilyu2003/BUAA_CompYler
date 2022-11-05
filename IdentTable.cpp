@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <algorithm>
 #include <iostream>
-#include <utility>
 #include <vector>
 
 using namespace std;
@@ -17,6 +16,7 @@ vector<int> identTableCnt;
 int maxBlockNum = 0;
 vector<int> tmpBlockNums;
 vector<string> totalName;
+vector<int> totalNameCnt;
 
 int getBlockNum() {
     //printTotalTable();
@@ -87,6 +87,7 @@ void appendFUNC_INT(string name) {
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
+    totalNameCnt.push_back(totalName.size());
     newBlock();
     //printIdentTable();
     totalName.push_back(name);
@@ -97,6 +98,7 @@ void appendFUNC_VOID(string name) {
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     identTableCnt.push_back(identTable.size()); // next block
+    totalNameCnt.push_back(totalName.size());
     newBlock();
     //printIdentTable();
     totalName.push_back(name);
@@ -216,12 +218,21 @@ void endBlock() {
 
     tmpBlockNums.pop_back();
 
+    cnt = totalNameCnt.back();
+    //while (totalName.size() > cnt) {
+        // totalName.pop_back();
+    //}
+    if (cnt > 0) {
+        //totalNameCnt.pop_back();
+    }
+
     //printTotalTable();
     //printIdentTable();
 }
 
 void enterBlock() {
     identTableCnt.push_back(identTable.size());
+    totalNameCnt.push_back(totalName.size());
     newBlock();
 }
 

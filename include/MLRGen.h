@@ -61,5 +61,6 @@ bool cmpPriority(std::string a, std::string b);
 
 extern std::vector<std::string> utils;
 extern int curBlockNum;
+extern std::string tAssign;
 
 #endif //MAIN_CPP_MLRGEN_H
