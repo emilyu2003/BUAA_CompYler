@@ -212,7 +212,6 @@ string UnaryExp_S() {
                 tmpStr += " " + getStr() + " ";
                 tmp = peek();
                 if (tmp != RPARENT) {
-                    FuncRParams_S();
                     tmpStr += FuncRParams_S() + " ";
                     //tmpStr += genCallFuncCode(name);
                     flagFunc = 1;
@@ -594,7 +593,7 @@ string Stmt_S() {
         tmpStr += " " + getStr() + " ";
         string strCon = getStr();
 
-        utils.clear();
+        vector<string> k;
         tmp = peek();
         if (tmp != RPARENT) {
             now_S = getSym();
@@ -602,7 +601,7 @@ string Stmt_S() {
             while (now_S == COMMA) {
                 string para = Exp_S();
                 tmpStr += para;
-                utils.push_back(para);
+                k.push_back(para);
                 now_S = getSym();
                 tmpStr += " " + getStr() + " ";
             }
@@ -613,7 +612,7 @@ string Stmt_S() {
         now_S = getSym(); // now_S == SEMICN
         tmpStr += " " + getStr() + " ";
 
-        genPrintfCode(strCon);
+        genPrintfCode(strCon, k);
     } else if (tmp == IFTK) {
         string ifStartStr = getName("START_IF_");
         string ifEndStr = getName("END_IF_");
@@ -627,7 +626,7 @@ string Stmt_S() {
         tmpStr += cond;
         now_S = getSym(); // now_S == RPARENT
 
-        genIfCode(cond, ifStartStr, elseStartStr, ifEndStr);
+        //genIfCode(cond, ifStartStr, elseStartStr, ifEndStr);
         genString(ifStartStr + ":");
 
         tmpStr += " " + getStr() + " ";

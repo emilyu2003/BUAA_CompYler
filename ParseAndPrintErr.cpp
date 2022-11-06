@@ -22,9 +22,10 @@ int isWhile = 0;
 
 void printParseResult(string s) {
     string output = "<" + s + ">" + "\n";
-    FILE *f = fopen("output.txt", "a");
-    fprintf(f, "%s", output.c_str());
-    fclose(f);
+//    FILE *f = fopen("output.txt", "a");
+//    fprintf(f, "%s", output.c_str());
+//    fclose(f);
+    cout << output;
 }
 
 /* end 默认包括; */
@@ -112,7 +113,7 @@ int LVal() {
 
     int rtNum = INT_T;
     if (ifConst(getStr())) {
-        flag = true;
+        flag = 1;
     }
     int dimension = 0;
 
@@ -210,9 +211,9 @@ int PrimaryExp() {
             rtNum = Number();
         } else {
             rtNum = LVal();
-            if (rtNum == ERROR_H) {
-                throwError(ERROR_H, getErrorLine());
-            }
+//            if (rtNum == ERROR_H) {
+//                throwError(ERROR_H, getErrorLine());
+//            }
         }
     }
 
@@ -706,9 +707,9 @@ int Stmt() {
         } else {
             now = getSym();  //IDENFR
             int rtNum = LVal();
-            if (rtNum == ERROR_H) {
-                throwError(ERROR_H, getErrorLine());
-            }
+//            if (rtNum == ERROR_H) {
+//                throwError(ERROR_H, getErrorLine());
+//            }
             now = getSym(); // now == ASSIGN
             tmp = peek();
             if (tmp == GETINTTK) {

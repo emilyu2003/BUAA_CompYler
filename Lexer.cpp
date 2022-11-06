@@ -73,7 +73,9 @@ int peeeek() {
 
 int getSym() {
     //printf("%d : ", lexerOutput[lexerPos].line);
-    printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
+    if (!finishedParsing) {
+        printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
+    }
     return lexerOutput[lexerPos++].type;
 }
 
@@ -240,7 +242,8 @@ Lexer lexer() {
 
 void printSymbol(int type, string str) {
     string output = symbol[type - 1] + " " + str + "\n";
-    FILE *f = fopen("output.txt", "a");
-    fprintf(f, "%s", output.c_str());
-    fclose(f);
+//    FILE *f = fopen("output.txt", "a");
+//    fprintf(f, "%s", output.c_str());
+//    fclose(f);
+    cout << output;
 }

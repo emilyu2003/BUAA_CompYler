@@ -10,5 +10,6 @@ extern int lexerPos;
 extern int lexerLen;
 extern Lexer lexerOutput[1000005];
 extern bool correctFlag;
+extern bool finishedParsing;
 
 #endif

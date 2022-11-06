@@ -192,17 +192,20 @@ bool ifStrConCntCoordinate(string str, int x) {
 }
 
 bool ifParamTypeCoordinate(vector<int> params) {
+    return true;
     for (int i = identTableCnt.back(); i < identTable.size(); i++) {
         if (identTable[i].type != params[i - identTableCnt.back()]) {
             return false;
+            //return true;
         }
     }
     return true;
 }
 
 bool ifParamCntCoordinate(vector<int> params) {
-    int cnt = identTable.size() - identTableCnt.back();
-    return cnt == params.size();
+    return true;
+//    int cnt = identTable.size() - identTableCnt.back();
+//    return cnt == params.size();
 }
 
 void endBlock() {
@@ -240,11 +243,12 @@ int lastLine = -1;
 
 void throwError(int code, int line) {
     if (line == lastLine) return;
-    FILE *f = fopen("error.txt", "a");
-    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
-    fclose(f);
+//    FILE *f = fopen("error.txt", "a");
+//    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
+//    fclose(f);
+    //printf(">>>>>>>>>>>>>>>>>>%d %c\n", line + 1, 'a' - code - 1);
     lastLine = line;
-    correctFlag = false;
+    //correctFlag = false;
 }
 
 IDENT getIdentTemporarily(std::string name) {

@@ -11,6 +11,8 @@
 #include "IdentTable.h"
 #include "TLRGen.h"
 
+#define PRINT 0
+
 using namespace std;
 
 vector<string> utils;
@@ -18,9 +20,11 @@ vector<string> utils;
 string tAssign;
 
 void printCode(string toFile, string format, string str) {
-    FILE *f = fopen(toFile.c_str(), "a");
-    fprintf(f, format.c_str(), str.c_str());
-    fclose(f);
+    if (PRINT) {
+        FILE *f = fopen(toFile.c_str(), "a");
+        fprintf(f, format.c_str(), str.c_str());
+        fclose(f);
+    }
 }
 
 void genString(string str) {
@@ -211,20 +215,24 @@ void genAssignCode(string lval, string exp, int dim) {
         string tt = genExpCode(exp);
         IDENT ident = getIdentTemporarily(lval);
         if (ident.genName.empty()) {
-            FILE *f = fopen("test.txt", "a");
             middleCode.push_back(lval + " = " + tt);
-            fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
-            fclose(f);
+            if (PRINT) {
+                FILE *f = fopen("test.txt", "a");
+                fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
+                fclose(f);
+            }
         } else {
             if (isNum(tt)) {
                 ident.value[0] = stoi(tt);
                 updateValue(ident);
             }
-            FILE *f = fopen("test.txt", "a");
             lval = ident.genName;
             middleCode.push_back(lval + " = " + tt);
-            fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
-            fclose(f);
+            if (PRINT) {
+                FILE *f = fopen("test.txt", "a");
+                fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
+                fclose(f);
+            }
         }
     } else {
         lval = getLvalCode(lval);
@@ -245,45 +253,55 @@ void genAssignCode(string lval, string exp, int dim) {
                     ident.value[rCnt] = stoi(tt);
                     updateValue(ident);
                 }
-                FILE *f = fopen("test.txt", "a");
                 middleCode.push_back(lval + "[" + to_string(rCnt) + "] = " + tt);
-                fprintf(f, "%s[%d] = %s\n", lval.c_str(), rCnt, tt.c_str());
-                fclose(f);
+                if (PRINT) {
+                    FILE *f = fopen("test.txt", "a");
+                    fprintf(f, "%s[%d] = %s\n", lval.c_str(), rCnt, tt.c_str());
+                    fclose(f);
+                }
                 while (i + 1 < exp.size() && exp[i + 1] == ' ') i++;
                 pos = i + 1;
             }
         }
         if (rCnt == -1) {    // A[x][y] = a + b;    // TODO
             tt = genExpCode(exp);
-            FILE *f = fopen("test.txt", "a");
             middleCode.push_back(lval + " = " + tt);
-            fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
-            fclose(f);
+            if (PRINT) {
+                FILE *f = fopen("test.txt", "a");
+                fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
+                fclose(f);
+            }
         }
     }
-    FILE *f = fopen("test.txt", "a");
-    fprintf(f, "\n");
-    fclose(f);
+    if (PRINT) {
+        FILE *f = fopen("test.txt", "a");
+        fprintf(f, "\n");
+        fclose(f);
+    }
 }
 
 void genFuncDeclCode(string type, string name) {
-    FILE *f = fopen("test.txt", "a");
     middleCode.push_back("func " + type + " " + name);
-    fprintf(f, "\nfunc %s %s\n", type.c_str(), name.c_str());
-    fclose(f);
+    if (PRINT) {
+        FILE *f = fopen("test.txt", "a");
+        fprintf(f, "\nfunc %s %s\n", type.c_str(), name.c_str());
+        fclose(f);
+    }
 }
 
 void genFuncParamCode(string type, string name) {
     name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
     name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-    FILE *f = fopen("test.txt", "a");
 
     int pos = getIdentPos(name);
     string tmp = getName("tParam_");
     identTable[pos].genName = tmp;
     middleCode.push_back("param " + type + " " + tmp);
-    fprintf(f, "param %s %s\n", type.c_str(), tmp.c_str());
-    fclose(f);
+    if (PRINT) {
+        FILE *f = fopen("test.txt", "a");
+        fprintf(f, "param %s %s\n", type.c_str(), tmp.c_str());
+        fclose(f);
+    }
 }
 
 string genCallFuncCode(string name) {
@@ -303,37 +321,72 @@ string genCallFuncCode(string name) {
     return func;
 }
 
-void genPrintfCode(string strCon) {
-    vector<string> strCons;
+void genPrintfCode(string strCon, vector<string> vars) {
+    int k = utils.size();
+    vector<string> strCons; // TODO
     vector<string> strNames;
+    vector<int> arrangement; // 1 : strCons, 2 : %d
     int pos = 1;
-    FILE *f = fopen("test.txt", "a");
-    for (int i = 1; i < strCon.size(); i++) {
-        if (pos >= i) continue;
-        if ((i < strCon.size() - 2 && strCon[i] == '%' && strCon[i + 1] == 'd') || strCon[i] == '\"') {
-            strCons.push_back(strCon.substr(pos, i - pos));
 
-            string name = getName("str_");
-            strNames.push_back(name);
+    strCon = strCon.substr(1, strCon.size() - 2);
+    string tmp;
+    for (int i = 0; i < strCon.size(); i++) {
+        if (i < strCon.size() - 2 && strCon[i] == '%' && strCon[i + 1] == 'd') {
+            if (!tmp.empty()) {
+                arrangement.push_back(1);
+                strCons.push_back("\"" + tmp + "\"");
+                string name = getName("str_");
+                strNames.push_back(name);
 
-            middleCode.push_back("const string " + name + " = " + +"\"" + strCons.back() + "\"");
-            fprintf(f, "const string %s = \"%s\"\n", name.c_str(), strCons.back().c_str());
-            pos = i + 2;
+                middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
+                if (PRINT) {
+                    FILE *f = fopen("test.txt", "a");
+                    fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
+                    fclose(f);
+                }
+            }
+            tmp.clear();
+            arrangement.push_back(2);
+            i++;
+        } else {
+            tmp += strCon[i];
+        }
+    }
+    if (!tmp.empty()) {
+        arrangement.push_back(1);
+        strCons.push_back("\"" + tmp + "\"");
+        string name = getName("str_");
+        strNames.push_back(name);
+
+        middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
+        if (PRINT) {
+            FILE *f = fopen("test.txt", "a");
+            fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
+            fclose(f);
         }
     }
 
-    int strCnt = 0;
-    middleCode.push_back("printf " + strNames[strCnt]);
-    fprintf(f, "printf %s\n", strNames[strCnt].c_str());
-    for (auto &var: utils) {
-        strCnt++;
-        string tt = genExpCode(var);
-        middleCode.push_back("printf " + tt);
-        fprintf(f, "printf %s\n", tt.c_str());
-        middleCode.push_back("printf " + strNames[strCnt]);
-        fprintf(f, "printf %s\n", strNames[strCnt].c_str());
+    int nameCnt = 0, varCnt = 0;
+    for (int i : arrangement) {
+        if (i == 1) {
+            middleCode.push_back("printf " + strNames[nameCnt]);
+            if (PRINT) {
+                FILE *f = fopen("test.txt", "a");
+                fprintf(f, "printf %s\n", strNames[nameCnt].c_str());
+                fclose(f);
+            }
+            nameCnt++;
+        } else {
+            string tt = genExpCode(vars[varCnt]);
+            middleCode.push_back("printf " + tt);
+            if (PRINT) {
+                FILE *f = fopen("test.txt", "a");
+                fprintf(f, "printf %s\n", tt.c_str());
+                fclose(f);
+            }
+            varCnt++;
+        }
     }
-    fclose(f);
 }
 
 string genScanfCode() {

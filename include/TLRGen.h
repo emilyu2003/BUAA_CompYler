@@ -27,5 +27,6 @@ int getSsaIdentPos(const std::string& name);
 
 extern std::vector<std::string> middleCode;
 extern std::vector<T_NAME> ssaIdents;
+extern std::vector<std::string> generatedCode;
 
 #endif //MAIN_CPP_TLRGEN_H

@@ -1,35 +1,20 @@
-int a = (1 + -+-+-+ 1 +2), b, c = 100 * -a;
-const int K = 1000, F, D;
-
-void func1(int a, int c) {
-    int lll = 0 *13245 + 5 + a - c;
-    lll = 3/2*4;
-    return;
-}
-
-int func222(int b) {
-    int lalrsg = 154*1 + a / 9;
-    return lalrsg;
-}
-
-int main() {
-    int a;
-    a = getint();
-    b = 1 + func222(a + 5 * a) * 5;
-
-    /*
-    while(a < 5) {
-        a = a + 1;
-        b = 0;
-        while(b < 5) {
-            b = b +1;
-            if((b + a+2) == 2 || !b || a == 3) continue;
-        }
+int fib(int i){
+    if (i == 1) {
+        return 1;
     }
-    */
-
-    b = 0 + 5 * 25 / a;
-    printf("hello world!\n");
-    printf("test%d : %d!\n" ,a + b, b);
+    if (i == 2) {
+        return 2;
+    }
+    return fib(i - 1) + fib(i - 2);
+}
+int main () {
+    int i = 2,j = 5;
+    i = getint();
+    j = getint();
+    //const int a[3][2] = {{1,2},{2,3},{3,4}};
+    const int a[2] = {1,2};
+    i = (-(i * j) * fib(4) + 0 + a[fib(1)] * 1 - 1/2) * 5;
+    printf("%d, %d, %d\n", i, j, k);
     return 0;
 }
+

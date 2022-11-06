@@ -33,7 +33,7 @@ void genConstCode(std::string str);
 
 void genAssignCode(std::string str, std::string str1, int dim);
 
-void genPrintfCode(std::string str);
+void genPrintfCode(std::string str, std::vector<std::string> vars);
 
 std::string genScanfCode();
 

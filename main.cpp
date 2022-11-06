@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <iostream>
 #include "symbol.h"
 #include "parseAndErr.h"
 #include "parseAndSemant.h"
 #include "base.h"
 #include "TLRGen.h"
+
+#define PRINT 0
 
 using namespace std;
 
@@ -17,24 +20,15 @@ int inputLen, lexerLen = 0;
 char line[500];
 Lexer lexerOutput[1000005];
 bool correctFlag;
+bool finishedParsing;
 
 int main() {
-    //freopen("testfile.txt", "r", stdin);
+    freopen("testfile.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
 
-    //clear file
-    FILE *f = fopen("output.txt", "w");
-    fclose(f);
-    f = fopen("error.txt", "w");
-    fclose(f);
-    f = fopen("test.txt", "w");
-    fclose(f);
-    f = fopen("mips.txt", "w");
-    fclose(f);
-
-    f = fopen("testfile.txt", "r");
     // read code
     string tmp;
-    while (fgets(line, 500, f) != NULL) {
+    while (fgets(line, 500, stdin) != NULL) {
         tmp.clear();
         for (int i = 0; i < strlen(line); i++) {
             tmp += line[i];
@@ -43,7 +37,7 @@ int main() {
         inputCode += tmp;
     }
     inputLen = inputCode.size();
-    fclose(f);
+
 
     // lexer
     initLexer();
@@ -54,17 +48,26 @@ int main() {
 
     // parser
     correctFlag = true;
+    finishedParsing = false;
     parseAndErr();
+    finishedParsing = true;
     if (correctFlag) {
-        printf("%s", parseAndSemant().c_str());
+        //printf("%s", parseAndSemant().c_str());
+        parseAndSemant();
     } else {
         printf("plz check your syntax\n");
     }
 
     // generator
-    initGenerator();
-    printMiddleCode();
-    mipsGen();
+//    initGenerator();
+//    mipsGen();
+//
+//    //f = fopen("mips.txt", "w");
+//    for (auto & i : generatedCode) {
+//        //fprintf(f, "%s\n", i.c_str());
+//        cout << i << endl;
+//    }
+//    //fclose(f);
 
     return 0;
 }

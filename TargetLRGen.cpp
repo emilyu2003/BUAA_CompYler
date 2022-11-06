@@ -16,15 +16,16 @@ using namespace std;
 vector<string> middleCode;
 vector<T_NAME> ssaIdents;
 unordered_set<string> stringPrint;
-bool generatedCode[100005];
+vector<string> generatedCode;
+bool generatedStatus[100005];
 int fpBias = 0;
 int gpBias = 0;
 
 // allocate register
 void initGenerator() {
-    middleCode.pop_back();  // return 0
-    middleCode.pop_back();  // t_0 = 0
-    memset(generatedCode, 0, sizeof(generatedCode));
+//    middleCode.pop_back();  // return 0
+//    middleCode.pop_back();  // t_0 = 0
+    memset(generatedStatus, 0, sizeof(generatedStatus));
 
     for (const auto &s: middleCode) {
         stringstream input;
@@ -65,9 +66,9 @@ int getSsaIdentPos(const std::string &name) {
 }
 
 void printMiddleCode() {
-    for (const auto &s: middleCode) {
-        cout << ">" << s << "<" << endl;
-    }
+    //for (const auto &s: middleCode) {
+    //cout << ">" << s << "<" << endl;
+    //}
 }
 
 string getAddr(string str, string target, bool print) {
@@ -101,9 +102,7 @@ string getAddr(string str, string target, bool print) {
 
     if (ret.find("($") != -1 && !target.empty()) {
         if (print) {
-            FILE *f = fopen("mips.txt", "a");
-            fprintf(f, "lw %s, %s\n", target.c_str(), ret.c_str());
-            fclose(f);
+            generatedCode.push_back("lw " + target + ", " + ret);
         }
         return target;
     }
@@ -111,11 +110,9 @@ string getAddr(string str, string target, bool print) {
 }
 
 void mipsGen() {
-    FILE *f = fopen("mips.txt", "a");
-    fprintf(f, ".data\n");
-    fclose(f);
+    generatedCode.emplace_back(".data");
 
-    for (int i = 0; i < middleCode.size(); i++) {
+    for (int i = 0; i < middleCode.size() - 1; i++) {
         string s = middleCode[i];
         if (s.empty()) continue;
         s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
@@ -144,27 +141,23 @@ void mipsGen() {
                 tmp2 += s[j];
                 if (j != start && s[j] == '"') break;
             }
-
-            f = fopen("mips.txt", "a");
-            fprintf(f, "%s: .asciiz %s\n", tmp1.c_str(), tmp2.c_str());
-            fclose(f);
+            generatedCode.push_back(tmp1 + ": .asciiz " + tmp2);
             stringPrint.insert(tmp1);
-            generatedCode[i] = true;
+            generatedStatus[i] = true;
         }
     }
 
-    f = fopen("mips.txt", "a");
-    fprintf(f, "\n.text\n");
-    fprintf(f, "li $fp, 0x10040000\n");
-    fprintf(f, "addi $fp, $fp, %d\n", fpBias);
-    fprintf(f, "\nj main\nnop\n\n");
-    fclose(f);
+    generatedCode.emplace_back(".text");
+    generatedCode.emplace_back("li $fp, 0x10040000");
+    generatedCode.push_back("addi $fp, $fp, " + to_string(fpBias));
+    generatedCode.emplace_back("j main");
+    generatedCode.emplace_back("nop");
 
-    for (int i = 0; i < middleCode.size(); i++) {
+    for (int i = 0; i < middleCode.size() - 1; i++) {
         string s = middleCode[i];
         if (s.empty()) continue;
-        if (generatedCode[i]) continue;
-        generatedCode[i] = true;
+        if (generatedStatus[i]) continue;
+        generatedStatus[i] = true;
         s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
 
         // def
@@ -175,9 +168,7 @@ void mipsGen() {
 
         // main {
         if (s == "MAIN:") {
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\nmain:\n");
-            fclose(f);
+            generatedCode.emplace_back("main:");
             continue;
         }
 
@@ -192,9 +183,7 @@ void mipsGen() {
             for (int j = start; j < s.size(); j++) {
                 tmp += s[j];
             }
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\n%s:\n", tmp.c_str());
-            fclose(f);
+            generatedCode.push_back(tmp + ":");
 
             // params
             int paramCnt = 0;
@@ -218,13 +207,10 @@ void mipsGen() {
                 tmp = tmpt;
 
                 if (toMem.empty()) { // lw $tmp, (paramCnt*4)($fp)
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw %s, %d($fp)\n", tmp.c_str(), paramCnt * 4);
-                    fclose(f);
+                    generatedCode.push_back("lw " + tmp + ", " + to_string(paramCnt * 4) + "($fp)");
                 } else {    // lw $t8, ()  sw $t8, toMem
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw $t8, %d($fp)\nsw $t8, %s\n", paramCnt * 4, toMem.c_str());
-                    fclose(f);
+                    generatedCode.push_back("lw $t8, " + to_string(paramCnt * 4) + "($fp)");
+                    generatedCode.push_back("sw $t8, " + toMem);
                 }
                 paramCnt++;
             }
@@ -255,23 +241,17 @@ void mipsGen() {
                 tmp = tmpt;
 
                 if (toMem.empty()) { // sw $t, i*4($fp)
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "sw %s, %d($fp)\n", tmp.c_str(), i * 4);
-                    fclose(f);
+                    generatedCode.push_back("sw " + tmp + ", " + to_string(i * 4) + "($fp)");
                 } else {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw $t8, %s\nsw $t8, %d($fp)\n", toMem.c_str(), i * 4);
-                    fclose(f);
+                    generatedCode.push_back("lw $t8, " + toMem);
+                    generatedCode.push_back("sw $t8, " + to_string(i * 4) + "($fp)");
                 }
-
                 i++;
             }
 
 
             // save to stack
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\naddi $sp, $sp, -%llu\n", (params.size() + 1) * 4);
-            fclose(f);
+            generatedCode.push_back("addi $sp, $sp, -" + to_string((params.size() + 1) * 4));
 
             for (int k = 0; k < params.size(); k++) {
                 string tmp = params[k];
@@ -280,22 +260,15 @@ void mipsGen() {
                 tmp = tmpt;
 
                 if (toMem.empty()) { // sw $t, k*4($fp)
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw %s, %d($sp)\n", tmp.c_str(), k * 4);
-                    fclose(f);
+                    generatedCode.push_back("lw " + tmp + ", " + to_string(k * 4) + "($sp)");
                 } else {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw $t8, %s\nsw $t8, %d($sp)\n", toMem.c_str(), k * 4);
-                    fclose(f);
+                    generatedCode.push_back("lw $t8, " + toMem);
+                    generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($sp)");
                 }
             }
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\nsw $ra, %llu($sp)\n", params.size() * 4);
-            fclose(f);
+            generatedCode.push_back("sw $ra, " + to_string(params.size() * 4) + "($sp)");
             if (params.size()) {
-                f = fopen("mips.txt", "a");
-                fprintf(f, "\naddi $fp, $fp, %llu\n", params.size() * 4);
-                fclose(f);
+                generatedCode.push_back("addi $fp, $fp, " + to_string(params.size() * 4));
                 fpBias += params.size() * 4;
             }
 
@@ -311,16 +284,12 @@ void mipsGen() {
                 for (int j = start; j < s.size(); j++) {
                     tmp += s[j];
                 }
-                f = fopen("mips.txt", "a");
-                fprintf(f, "jal %s\n", tmp.c_str());
-                fclose(f);
+                generatedCode.push_back("jal " + tmp);
             }
 
             // recover from stack
             if (params.size()) {
-                f = fopen("mips.txt", "a");
-                fprintf(f, "\naddi $fp, $fp, -%llu\n", params.size() * 4);
-                fclose(f);
+                generatedCode.push_back("addi $fp, $fp, -" + to_string(params.size() * 4));
                 fpBias -= params.size() * 4;
             }
 
@@ -331,20 +300,14 @@ void mipsGen() {
                 tmp = tmpt;
 
                 if (toMem.empty()) { // sw $t, k*4($fp)
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw %s, %d($sp)\nsw $t8, %s\n", tmp.c_str(), k * 4);
-                    fclose(f);
+                    generatedCode.push_back("lw " + tmp + to_string(k * 4) + "($sp)");
                 } else {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "lw $t8, %d($sp)\nsw $t8, %s\n", k * 4, toMem.c_str());
-                    fclose(f);
+                    generatedCode.push_back("lw $t8, " + to_string(k * 4) + "($sp)");
+                    generatedCode.push_back("sw $t8, " + toMem);
                 }
             }
-            f = fopen("mips.txt", "a");
-            fprintf(f, "lw $ra, %llu($sp)\n", params.size() * 4);
-            fprintf(f, "addi $sp, $sp, %llu\n", (params.size() + 1) * 4);
-            fclose(f);
-
+            generatedCode.push_back("lw $ra, " + to_string(params.size() * 4) + "($sp)");
+            generatedCode.push_back("addi $sp, $sp, " + to_string((params.size() + 1) * 4));
             continue;
         }
 
@@ -362,19 +325,15 @@ void mipsGen() {
                 }
                 tmp = getAddr(tmp, "$v0", false);
                 if (tmp != "$v0") {
-                    f = fopen("mips.txt", "a");
                     if (isNum(tmp)) {
-                        fprintf(f, "li $v0, %s\n", tmp.c_str());
+                        generatedCode.push_back("li $v0, " + tmp);
                     } else {
-                        fprintf(f, "move $v0, %s\n", tmp.c_str());
+                        generatedCode.push_back("move $v0, " + tmp);
                     }
-                    fclose(f);
                 }
             }
 
-            f = fopen("mips.txt", "a");
-            fprintf(f, "jr $ra\n");
-            fclose(f);
+            generatedCode.emplace_back("jr $ra");
         }
 
         // exp
@@ -403,56 +362,33 @@ void mipsGen() {
 
             string tmp;
             if (s[0] == '+') {
-                f = fopen("mips.txt", "a");
-                fprintf(f, "add %s, %s, %s\n", c.c_str(), a.c_str(), b.c_str());
-                fclose(f);
+                generatedCode.push_back("add " + c + ", " + a + ", " + b);
             } else if (s[0] == '-') {
                 if (isNum(a)) {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "li $t8, %s\n", a.c_str());
-                    fclose(f);
+                    generatedCode.push_back("li $t8, " + a);
                     a = "$t8";
                 }
-                f = fopen("mips.txt", "a");
-                fprintf(f, "sub %s, %s, %s\n", c.c_str(), a.c_str(), b.c_str());
-                fclose(f);
+                generatedCode.push_back("sub " + c + ", " + a + ", " + b);
             } else if (s[0] == '*') {
-                f = fopen("mips.txt", "a");
-                fprintf(f, "mul %s, %s, %s\n", c.c_str(), a.c_str(), b.c_str());
-                fclose(f);
+                generatedCode.push_back("mul " + c + ", " + a + ", " + b);
             } else if (s[0] == '/') {
                 if (isNum(a)) {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "li $t8, %s\n", a.c_str());
-                    fclose(f);
+                    generatedCode.push_back("li $t8, " + a);
                     a = "$t8";
                 }
-                f = fopen("mips.txt", "a");
-                fprintf(f, "div %s, %s\n", a.c_str(), b.c_str());
-                fprintf(f, "mflo %s\n", c.c_str());
-                fclose(f);
+                generatedCode.push_back("div " + a + ", " + b);
+                generatedCode.push_back("mflo " + c);
             } else if (s[0] == '%') {
                 if (isNum(a)) {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "li $t8, %s\n", a.c_str());
-                    fclose(f);
+                    generatedCode.push_back("li $t8, " + a);
                     a = "$t8";
                 }
-                f = fopen("mips.txt", "a");
-                fprintf(f, "add %s, %s\n", a.c_str(), b.c_str());
-                fprintf(f, "mfhi %s\n", c.c_str());
-                fclose(f);
-                if (!toMem.empty()) {
-                    f = fopen("mips.txt", "a");
-                    fprintf(f, "sw %s, %s\n", c.c_str(), toMem.c_str());
-                    fclose(f);
-                }
+                generatedCode.push_back("div " + a + ", " + b);
+                generatedCode.push_back("mfhi " + c);
             }
 
             if (tmpc == "$t8") {
-                f = fopen("mips.txt", "a");
-                fprintf(f, "sw $t8, %s\n", endc.c_str());
-                fclose(f);
+                generatedCode.push_back("sw $t8, " + endc);
             }
             continue;
         }
@@ -474,13 +410,10 @@ void mipsGen() {
                     a = tmpa;
                 } else {
                     if (isNum(res) && toMem.empty()) {
-                        f = fopen("mips.txt", "a");
-                        fprintf(f, "li %s, %s\n", a.c_str(), res.c_str());
-                        fclose(f);
+                        generatedCode.push_back("li " + a + ", " + res);
                     } else if (isNum(res) && !toMem.empty()) {
-                        f = fopen("mips.txt", "a");
-                        fprintf(f, "li $t8, %s\nsw $t8, %s\n", res.c_str(), toMem.c_str());
-                        fclose(f);
+                        generatedCode.push_back("li $t8, " + res);
+                        generatedCode.push_back("sw $t8, " + toMem);
                     } else {
                         b = res;
                         if (b == "RET") {
@@ -491,18 +424,16 @@ void mipsGen() {
                             b = tmpb;
                         }
 
-                        f = fopen("mips.txt", "a");
                         if (asnVal.empty() && toMem.empty()) {  // $t = $t
-                            fprintf(f, "move %s, %s\n", a.c_str(), b.c_str());
+                            generatedCode.push_back("move " + a + ", " + b);
                         } else if (asnVal.empty() && !toMem.empty()) {  // 0($xp) = $t
-                            fprintf(f, "sw %s, %s\n", b.c_str(), toMem.c_str());
+                            generatedCode.push_back("sw " + b + ", " + toMem);
                         } else if (!asnVal.empty() && toMem.empty()) {  // $t = 0($xp)
-                            fprintf(f, "lw %s, %s\n", a.c_str(), asnVal.c_str());
+                            generatedCode.push_back("lw " + a + ", " + asnVal);
                         } else if (!asnVal.empty() && !toMem.empty()) { // 0($xp) = 0($xp)
-                            fprintf(f, "lw $t9, %s\n", asnVal.c_str());
-                            fprintf(f, "sw $t9, %s\n", toMem.c_str());
+                            generatedCode.push_back("lw $t9, " + asnVal);
+                            generatedCode.push_back("sw $t9, " + toMem);
                         }
-                        fclose(f);
                     }
                 }
             }
@@ -521,16 +452,15 @@ void mipsGen() {
                 tmp += s[j];
             }
             tmp = getAddr(tmp, "$t8", false);
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\n# read %s\n", tmp.c_str());
-            fprintf(f, "li $v0, 5\n");
-            fprintf(f, "syscall\n");
+
+            generatedCode.push_back("# read %s " + tmp);
+            generatedCode.emplace_back("li $v0, 5");
+            generatedCode.emplace_back("syscall");
             if (tmp != "$t8") {
-                fprintf(f, "move %s, $v0\n", tmp.c_str());
+                generatedCode.push_back("move " + tmp + ", $v0");
             } else {
-                fprintf(f, "sw $v0, %s\n", tmp.c_str());
+                generatedCode.push_back("sw $v0, " + tmp);
             }
-            fclose(f);
         }
 
         // printf
@@ -544,25 +474,20 @@ void mipsGen() {
             for (int j = start; j < s.size(); j++) {
                 tmp += s[j];
             }
-            f = fopen("mips.txt", "a");
-            fprintf(f, "\n# printf %s\n", tmp.c_str());
+            generatedCode.push_back("# printf " + tmp);
             if (stringPrint.count(tmp)) {
-                fprintf(f, "li $v0, 4\n");
-                fprintf(f, "la $a0, %s\n", tmp.c_str());
-                fprintf(f, "syscall\n");
+                generatedCode.emplace_back("li $v0, 4");
+                generatedCode.push_back("la $a0,  " + tmp);
+                generatedCode.emplace_back("syscall");
             } else {
                 tmp = getAddr(tmp, "$t8", true);
-                fprintf(f, "li $v0, 1\n");
-                fprintf(f, "move $a0, %s\n", tmp.c_str());
-                fprintf(f, "syscall\n");
+                generatedCode.emplace_back("li $v0, 1");
+                generatedCode.push_back("move $a0,  " + tmp);
+                generatedCode.emplace_back("syscall");
             }
-            fclose(f);
             continue;
         }
     }
-
-    f = fopen("mips.txt", "a");
-    fprintf(f, "\nli $v0, 10\nsyscall\n");
-    fclose(f);
-
+    generatedCode.emplace_back("li $v0, 10");
+    generatedCode.emplace_back("syscall");
 }
