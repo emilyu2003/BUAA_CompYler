@@ -51,6 +51,8 @@ void newBlock();
 
 void updateValue(IDENT ident);
 
+void unvalidateValue(IDENT ident);
+
 void appendINT(std::string name);
 
 void appendConst(std::string name);

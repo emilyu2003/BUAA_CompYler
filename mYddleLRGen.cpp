@@ -62,6 +62,8 @@ string dealUnaryOp(string str) {    //todo: !-+-a
 
 string getLvalCode(string str) {
     string name, len1, len2;
+
+    // array
     int cnt1 = -1, cnt2 = -1;
     for (int i = 0; i < str.size(); i++) {
         if (str[i] == '[') {
@@ -116,7 +118,7 @@ string genExpCode(string str) {
     str = dealUnaryOp(str);
     stringstream input;
     input << str;
-    int flag = 0;
+    int flag = 0, funcFlag = 0;
     while (input >> res) {
         if (res == "[") {
             string tmp = poNo.back();
@@ -160,6 +162,7 @@ string genExpCode(string str) {
                 printCode("test.txt", "%s", mCode);
                 mCode.clear();
             }
+
         } else {
             poNo.push_back(res);
         }
@@ -188,6 +191,10 @@ void genVarCode(string str) {
 
     tmp = getName(tmp);
     identTable[pos].genName = tmp;
+    if (tmp.find("Global") != -1) {
+        identTable[pos].value[0] = 0;
+        identTable[pos].value_valid = true;
+    }
 
     printCode("test.txt", "var int %s\n", tmp);
     middleCode.push_back("var int " + tmp);
@@ -225,6 +232,8 @@ void genAssignCode(string lval, string exp, int dim) {
             if (isNum(tt)) {
                 ident.value[0] = stoi(tt);
                 updateValue(ident);
+            } else {
+                unvalidateValue(ident);
             }
             lval = ident.genName;
             middleCode.push_back(lval + " = " + tt);
@@ -248,10 +257,12 @@ void genAssignCode(string lval, string exp, int dim) {
                 rCnt++;
                 string tmp = exp.substr(pos, i - pos);
                 tt = genExpCode(tmp);
+                IDENT ident = getIdentTemporarily(lval);
                 if (isNum(tt)) {
-                    IDENT ident = getIdentTemporarily(lval);
                     ident.value[rCnt] = stoi(tt);
                     updateValue(ident);
+                } else {
+                    unvalidateValue(ident);
                 }
                 middleCode.push_back(lval + "[" + to_string(rCnt) + "] = " + tt);
                 if (PRINT) {
@@ -307,11 +318,17 @@ void genFuncParamCode(string type, string name) {
 string genCallFuncCode(string name) {
     IDENT ident = getIdentTemporarily(name);
     string func = getName("t_");
+    vector<string> rParams;
     for (auto &util: utils) {
         string tt = genExpCode(util);
+        rParams.push_back(tt);
+    }
+
+    for (auto tt : rParams) {
         printCode("test.txt", "push %s\n", tt);
         middleCode.push_back("push " + tt);
     }
+
     utils.clear();
     printCode("test.txt", "call %s\n", name);
     middleCode.push_back("call " + name);
@@ -322,16 +339,14 @@ string genCallFuncCode(string name) {
 }
 
 void genPrintfCode(string strCon, vector<string> vars) {
-    int k = utils.size();
-    vector<string> strCons; // TODO
+    vector<string> strCons;
     vector<string> strNames;
     vector<int> arrangement; // 1 : strCons, 2 : %d
-    int pos = 1;
 
     strCon = strCon.substr(1, strCon.size() - 2);
     string tmp;
     for (int i = 0; i < strCon.size(); i++) {
-        if (i < strCon.size() - 2 && strCon[i] == '%' && strCon[i + 1] == 'd') {
+        if (i < strCon.size() - 1 && strCon[i] == '%' && strCon[i + 1] == 'd') {
             if (!tmp.empty()) {
                 arrangement.push_back(1);
                 strCons.push_back("\"" + tmp + "\"");
@@ -367,7 +382,7 @@ void genPrintfCode(string strCon, vector<string> vars) {
     }
 
     int nameCnt = 0, varCnt = 0;
-    for (int i : arrangement) {
+    for (int i: arrangement) {
         if (i == 1) {
             middleCode.push_back("printf " + strNames[nameCnt]);
             if (PRINT) {

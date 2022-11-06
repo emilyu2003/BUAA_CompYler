@@ -24,7 +24,7 @@ bool finishedParsing;
 
 int main() {
     freopen("testfile.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
+    freopen("mips.txt", "w", stdout);
 
     // read code
     string tmp;
@@ -57,17 +57,18 @@ int main() {
     } else {
         printf("plz check your syntax\n");
     }
+    printMiddleCode();
 
-    // generator
-//    initGenerator();
-//    mipsGen();
-//
-//    //f = fopen("mips.txt", "w");
-//    for (auto & i : generatedCode) {
-//        //fprintf(f, "%s\n", i.c_str());
-//        cout << i << endl;
-//    }
-//    //fclose(f);
+    //generatora
+    initGenerator();
+    mipsGen();
+
+    //f = fopen("mips.txt", "w");
+    for (auto &i: generatedCode) {
+        //fprintf(f, "%s\n", i.c_str());
+        cout << i << endl;
+    }
+    //fclose(f);
 
     return 0;
 }

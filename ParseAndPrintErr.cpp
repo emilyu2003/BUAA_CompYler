@@ -25,7 +25,7 @@ void printParseResult(string s) {
 //    FILE *f = fopen("output.txt", "a");
 //    fprintf(f, "%s", output.c_str());
 //    fclose(f);
-    cout << output;
+//cout << output;
 }
 
 /* end 默认包括; */

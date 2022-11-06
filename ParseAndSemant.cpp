@@ -207,18 +207,19 @@ string UnaryExp_S() {
             name = getStr();
             tmp = peek();
             if (tmp == LPARENT) {
-                tmpStr += getStr() + " ";
+                //tmpStr += getStr() + " ";
                 now_S = getSym(); // LPARENT
-                tmpStr += " " + getStr() + " ";
+                //tmpStr += " " + getStr() + " ";
                 tmp = peek();
                 if (tmp != RPARENT) {
-                    tmpStr += FuncRParams_S() + " ";
+                    FuncRParams_S();
+                    //tmpStr += FuncRParams_S() + " ";
                     //tmpStr += genCallFuncCode(name);
-                    flagFunc = 1;
-                    ttmpStr += genCallFuncCode(name);
                 }
+                flagFunc = 1;
+                tmpStr += genCallFuncCode(name);
                 now_S = getSym(); // RPARENT
-                tmpStr += " " + getStr() + " ";
+                //tmpStr += " " + getStr() + " ";
             } else {
                 tmpStr += PrimaryExp_S() + " ";
             }
@@ -227,7 +228,7 @@ string UnaryExp_S() {
         }
     }
     printParseResult_S("UnaryExp_S");
-    if (flagFunc) return ttmpStr;
+    //if (flagFunc) return ttmpStr;
     return tmpStr;
 }
 
@@ -705,6 +706,7 @@ string Stmt_S() {
 }
 
 string Block_S() {
+    int tmpFunc = isFunc_S;
     if (isFunc_S != 1) {
         enterBlock();
     }
@@ -727,6 +729,10 @@ string Block_S() {
     }
     now_S = getSym();  // now_S == RBRACE
     tmpStr += " " + getStr() + " ";
+
+    if (tmpFunc) {
+        genReturnCode("");
+    }
 
     endBlock();
     printParseResult_S("Block_S");

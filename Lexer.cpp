@@ -74,7 +74,7 @@ int peeeek() {
 int getSym() {
     //printf("%d : ", lexerOutput[lexerPos].line);
     if (!finishedParsing) {
-        printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
+        //printSymbol(lexerOutput[lexerPos].type, lexerOutput[lexerPos].str);
     }
     return lexerOutput[lexerPos++].type;
 }

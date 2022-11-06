@@ -30,8 +30,13 @@ void newBlock() {
 
 void updateValue(IDENT ident) {
     int pos = getIdentPos(ident.name);
-    identTable[pos].value_valid = 1;
+    identTable[pos].value_valid = false;    //TODO
     identTable[pos].value = ident.value;
+}
+
+void unvalidateValue(IDENT ident) {
+    int pos = getIdentPos(ident.name);
+    identTable[pos].value_valid = false;
 }
 
 void appendINT(string name) {
@@ -223,7 +228,7 @@ void endBlock() {
 
     cnt = totalNameCnt.back();
     //while (totalName.size() > cnt) {
-        // totalName.pop_back();
+    // totalName.pop_back();
     //}
     if (cnt > 0) {
         //totalNameCnt.pop_back();
@@ -277,6 +282,7 @@ string getName(string a) {
             if (str == totalName[i]) break;
             if (i == totalName.size() - 1) flag = 1;
         }
+        if (totalName.empty()) flag = 1;
         if (flag) {
             totalName.push_back(str);
             return str;

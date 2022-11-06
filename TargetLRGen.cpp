@@ -23,8 +23,8 @@ int gpBias = 0;
 
 // allocate register
 void initGenerator() {
-//    middleCode.pop_back();  // return 0
-//    middleCode.pop_back();  // t_0 = 0
+    middleCode.pop_back();  // return 0
+    middleCode.pop_back();  // t_0 = 0
     memset(generatedStatus, 0, sizeof(generatedStatus));
 
     for (const auto &s: middleCode) {
@@ -66,9 +66,9 @@ int getSsaIdentPos(const std::string &name) {
 }
 
 void printMiddleCode() {
-    //for (const auto &s: middleCode) {
-    //cout << ">" << s << "<" << endl;
-    //}
+    for (const auto &s: middleCode) {
+        cout << ">" << s << "<" << endl;
+    }
 }
 
 string getAddr(string str, string target, bool print) {
@@ -109,10 +109,71 @@ string getAddr(string str, string target, bool print) {
     return ret;
 }
 
+void mipsGenExp(string s) {
+    string a, b, c, res;
+    stringstream input;
+    input << s;
+    string toMem;
+    while (input >> res) {
+        if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%") continue;
+        if (a.empty()) a = res;
+        else if (b.empty()) b = res;
+        else if (c.empty()) c = res;
+    }
+    if (s[0] == '+' || s[0] == '*') {
+        if (isNum(a)) {
+            swap(a, b);
+        }
+    }
+    a = getAddr(a, "$t8", true);
+    b = getAddr(b, "$t9", true);
+    string tmpc = getAddr(c, "$t8", false);
+    string endc = getAddr(c, "", false);
+    if (tmpc == "$t8") toMem = getAddr(c, "", false);
+    c = tmpc;
+
+    string tmp;
+    if (s[0] == '+') {
+        generatedCode.push_back("addu " + c + ", " + a + ", " + b);
+    } else if (s[0] == '-') {
+        if (isNum(a)) {
+            generatedCode.push_back("li $t8, " + a);
+            a = "$t8";
+        }
+        generatedCode.push_back("subu " + c + ", " + a + ", " + b);
+    } else if (s[0] == '*') {
+        generatedCode.push_back("mul " + c + ", " + a + ", " + b);
+    } else if (s[0] == '/') {
+        if (isNum(a)) {
+            generatedCode.push_back("li $t8, " + a);
+            a = "$t8";
+        } else if (isNum(b)) {
+            generatedCode.push_back("li $t9, " + b);
+            b = "$t9";
+        }
+        generatedCode.push_back("div " + a + ", " + b);
+        generatedCode.push_back("mflo " + c);
+    } else if (s[0] == '%') {
+        if (isNum(a)) {
+            generatedCode.push_back("li $t8, " + a);
+            a = "$t8";
+        } else if (isNum(b)) {
+            generatedCode.push_back("li $t9, " + b);
+            b = "$t9";
+        }
+        generatedCode.push_back("div " + a + ", " + b);
+        generatedCode.push_back("mfhi " + c);
+    }
+
+    if (tmpc == "$t8") {
+        generatedCode.push_back("sw $t8, " + endc);
+    }
+}
+
 void mipsGen() {
     generatedCode.emplace_back(".data");
 
-    for (int i = 0; i < middleCode.size() - 1; i++) {
+    for (int i = 0; i < middleCode.size(); i++) {
         string s = middleCode[i];
         if (s.empty()) continue;
         s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
@@ -144,16 +205,253 @@ void mipsGen() {
             generatedCode.push_back(tmp1 + ": .asciiz " + tmp2);
             stringPrint.insert(tmp1);
             generatedStatus[i] = true;
+            continue;
         }
     }
 
     generatedCode.emplace_back(".text");
     generatedCode.emplace_back("li $fp, 0x10040000");
     generatedCode.push_back("addi $fp, $fp, " + to_string(fpBias));
+
+    // global
+    for (int i = 0; i < middleCode.size(); i++) {
+        string s = middleCode[i];
+        if (s.empty()) continue;
+        if (generatedStatus[i]) continue;
+        s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+
+        if (s == "MAIN:") {
+            break;
+        }
+
+        // def
+        if (s.substr(0, 7) == "var int" || s.substr(0, 7) == "const int") {
+
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // func
+        if (s.substr(0, 9) == "func void" || s.substr(0, 8) == "func int") {
+            while (i < middleCode.size()) {
+                if (middleCode[i].substr(0, 3) == "ret") {
+                    break;
+                }
+                i++;
+            }
+            continue;
+        }
+
+        // push and call
+        if (s.substr(0, 4) == "push" || s.substr(0, 4) == "call") {
+            vector<string> params;
+
+            // push to heap
+            int k = 0, paramCnt = 0;
+            while (i < middleCode.size() && middleCode[i].substr(0, 4) == "push") {
+                generatedStatus[i] = true;
+                s = middleCode[i];
+                int start = 4;
+                while (start < s.size()) {
+                    if (s[start] != ' ') break;
+                    start++;
+                }
+                string tmp;
+                for (int j = start; j < s.size(); j++) {
+                    tmp += s[j];
+                }
+                params.push_back(tmp);
+
+                // sw tmp, i*4($fp)
+                string tmpt = getAddr(tmp, "$t8", false), toMem;
+                if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
+                tmp = tmpt;
+
+                if (toMem.empty()) { // sw $t, i*4($fp)
+                    if (isNum(tmp)) {
+                        generatedCode.push_back("li $t8, " + tmp);
+                        generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($fp)");
+                    } else {
+                        generatedCode.push_back("sw " + tmp + ", " + to_string(k * 4) + "($fp)");
+                        paramCnt++;
+                    }
+                } else {
+                    generatedCode.push_back("lw $t8, " + toMem);
+                    generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($fp)");
+                    paramCnt++;
+                }
+                i++;
+                k++;
+            }
+
+
+            // save to stack
+            generatedCode.push_back("addi $sp, $sp, -" + to_string((paramCnt + 1) * 4));
+
+            paramCnt = 0;
+            for (k = 0; k < params.size(); k++) {
+                string tmp = params[k];
+                string tmpt = getAddr(tmp, "$t8", false), toMem;
+                if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
+                tmp = tmpt;
+
+                if (toMem.empty()) { // sw $t, k*4($sp)
+                    if (isNum(tmp)) {
+                        // do nothing
+//                      you don't need to save a number to a stack, do you?
+//                      generatedCode.push_back("li $t8, " + tmp);
+//                      generatedCode.push_back("sw $t8, " + to_string(paramCnt * 4) + "($sp)");
+                    } else {
+                        generatedCode.push_back("sw " + tmp + ", " + to_string(paramCnt * 4) + "($sp)");
+                        paramCnt++;
+                    }
+                } else {
+                    generatedCode.push_back("lw $t8, " + toMem);
+                    generatedCode.push_back("sw $t8, " + to_string(paramCnt * 4) + "($sp)");
+                    paramCnt++;
+                }
+            }
+            generatedCode.push_back("sw $ra, " + to_string(paramCnt * 4) + "($sp)");
+            if (!params.empty()) {
+                generatedCode.push_back("addi $fp, $fp, " + to_string(params.size() * 4));
+                fpBias += params.size() * 4;
+            }
+
+            //call
+            s = middleCode[i];
+            if (s.substr(0, 4) == "call") {
+                int start = 4;
+                while (start < s.size()) {
+                    if (s[start] != ' ') break;
+                    start++;
+                }
+                string tmp;
+                for (int j = start; j < s.size(); j++) {
+                    tmp += s[j];
+                }
+                generatedCode.push_back("jal " + tmp);
+            }
+
+            // recover from stack
+            if (!params.empty()) {
+                generatedCode.push_back("addi $fp, $fp, -" + to_string(params.size() * 4));
+                fpBias -= params.size() * 4;
+            }
+
+            paramCnt = 0;
+            for (k = 0; k < params.size(); k++) {
+                string tmp = params[k];
+                string tmpt = getAddr(tmp, "$t8", false), toMem;
+                if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
+                tmp = tmpt;
+
+                if (toMem.empty()) { // sw $t, k*4($fp)
+                    if (isNum(tmp)) {
+                        // nothing to do
+                    } else {
+                        generatedCode.push_back("lw " + tmp + ", " + to_string(paramCnt * 4) + "($sp)");
+                        paramCnt++;
+                    }
+                } else {
+                    generatedCode.push_back("lw $t8, " + to_string(paramCnt * 4) + "($sp)");
+                    generatedCode.push_back("sw $t8, " + toMem);
+                    paramCnt++;
+                }
+            }
+            generatedCode.push_back("lw $ra, " + to_string(paramCnt * 4) + "($sp)");
+            generatedCode.push_back("addi $sp, $sp, " + to_string((paramCnt + 1) * 4));
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // exp
+        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%') {
+            mipsGenExp(s);
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // assign
+        if (s.find('=') != -1) {
+            stringstream input;
+            input << s;
+            string res, a, b;
+            string toMem, asnVal;
+            while (input >> res) {
+                if (res == "=") {
+                    continue;
+                }
+                if (a.empty()) {
+                    a = res;
+                    string tmpa = getAddr(a, "$t8", false);
+                    if (tmpa == "$t8") toMem = getAddr(a, "", false);
+                    a = tmpa;
+                } else {
+                    if (isNum(res) && toMem.empty()) {
+                        generatedCode.push_back("li " + a + ", " + res);
+                    } else if (isNum(res) && !toMem.empty()) {
+                        generatedCode.push_back("li $t8, " + res);
+                        generatedCode.push_back("sw $t8, " + toMem);
+                    } else {
+                        b = res;
+                        if (b == "RET") {
+                            b = "$v0";
+                        } else {
+                            string tmpb = getAddr(b, "$t9", false);
+                            if (tmpb == "$t9") asnVal = getAddr(b, "", false);  // 0($xp) = toMem || b
+                            b = tmpb;
+                        }
+
+                        if (asnVal.empty() && toMem.empty()) {  // $t = $t
+                            generatedCode.push_back("move " + a + ", " + b);
+                        } else if (asnVal.empty() && !toMem.empty()) {  // 0($xp) = $t
+                            generatedCode.push_back("sw " + b + ", " + toMem);
+                        } else if (!asnVal.empty() && toMem.empty()) {  // $t = 0($xp)
+                            generatedCode.push_back("lw " + a + ", " + asnVal);
+                        } else if (!asnVal.empty() && !toMem.empty()) { // 0($xp) = 0($xp)
+                            generatedCode.push_back("lw $t9, " + asnVal);
+                            generatedCode.push_back("sw $t9, " + toMem);
+                        }
+                    }
+                }
+            }
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // getint
+        if (s.substr(0, 4) == "read") {
+            int start = 4;
+            while (start < s.size()) {
+                if (s[start] != ' ') break;
+                start++;
+            }
+            string tmp, toMem;
+            for (int j = start; j < s.size(); j++) {
+                tmp += s[j];
+            }
+            string ttmp = getAddr(tmp, "$t8", false);
+            if (ttmp == "$t8") toMem = getAddr(tmp, "", false);
+            tmp = ttmp;
+
+            generatedCode.push_back("# read %s " + tmp);
+            generatedCode.emplace_back("li $v0, 5");
+            generatedCode.emplace_back("syscall");
+            if (!toMem.empty()) { // move $t8, $v0
+                generatedCode.push_back("sw $v0, " + toMem);
+            } else {
+                generatedCode.push_back("move " + tmp + ", $v0");
+            }
+            generatedStatus[i] = true;
+            continue;
+        }
+    }
+
     generatedCode.emplace_back("j main");
     generatedCode.emplace_back("nop");
 
-    for (int i = 0; i < middleCode.size() - 1; i++) {
+    // main
+    for (int i = 0; i < middleCode.size(); i++) {
         string s = middleCode[i];
         if (s.empty()) continue;
         if (generatedStatus[i]) continue;
@@ -185,12 +483,10 @@ void mipsGen() {
             }
             generatedCode.push_back(tmp + ":");
 
-            // params
-            int paramCnt = 0;
+            vector<string> params;
             while (i + 1 < middleCode.size() && middleCode[i + 1].substr(0, 9) == "param int") {
                 i++;
                 s = middleCode[i];
-                start = 9;
                 tmp.clear();
                 string toMem, tmpt;
                 while (start < s.size()) {
@@ -200,19 +496,27 @@ void mipsGen() {
                 for (int j = start; j < s.size(); j++) {
                     tmp += s[j];
                 }
+                params.push_back(tmp);
+            }
+
+            // params
+            int paramCnt = params.size();
+            for (auto &param: params) {
+                tmp = param;
+                string toMem;
 
                 // lw tmp, (paramCnt*4)($fp)
-                tmpt = getAddr(tmp, "$t8", false);
+                string tmpt = getAddr(tmp, "$t8", false);
                 if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
                 tmp = tmpt;
 
                 if (toMem.empty()) { // lw $tmp, (paramCnt*4)($fp)
-                    generatedCode.push_back("lw " + tmp + ", " + to_string(paramCnt * 4) + "($fp)");
+                    generatedCode.push_back("lw " + tmp + ", " + to_string(-paramCnt * 4) + "($fp)");
                 } else {    // lw $t8, ()  sw $t8, toMem
-                    generatedCode.push_back("lw $t8, " + to_string(paramCnt * 4) + "($fp)");
+                    generatedCode.push_back("lw $t8, " + to_string(-paramCnt * 4) + "($fp)");
                     generatedCode.push_back("sw $t8, " + toMem);
                 }
-                paramCnt++;
+                paramCnt--;
             }
             continue;
         }
@@ -222,6 +526,7 @@ void mipsGen() {
             vector<string> params;
 
             // push to heap
+            int k = 0, paramCnt = 0;
             while (i < middleCode.size() && middleCode[i].substr(0, 4) == "push") {
                 s = middleCode[i];
                 int start = 4;
@@ -241,33 +546,51 @@ void mipsGen() {
                 tmp = tmpt;
 
                 if (toMem.empty()) { // sw $t, i*4($fp)
-                    generatedCode.push_back("sw " + tmp + ", " + to_string(i * 4) + "($fp)");
+                    if (isNum(tmp)) {
+                        generatedCode.push_back("li $t8, " + tmp);
+                        generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($fp)");
+                    } else {
+                        generatedCode.push_back("sw " + tmp + ", " + to_string(k * 4) + "($fp)");
+                        paramCnt++;
+                    }
                 } else {
                     generatedCode.push_back("lw $t8, " + toMem);
-                    generatedCode.push_back("sw $t8, " + to_string(i * 4) + "($fp)");
+                    generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($fp)");
+                    paramCnt++;
                 }
                 i++;
+                k++;
             }
 
 
             // save to stack
-            generatedCode.push_back("addi $sp, $sp, -" + to_string((params.size() + 1) * 4));
+            generatedCode.push_back("addi $sp, $sp, -" + to_string((paramCnt + 1) * 4));
 
-            for (int k = 0; k < params.size(); k++) {
+            paramCnt = 0;
+            for (k = 0; k < params.size(); k++) {
                 string tmp = params[k];
                 string tmpt = getAddr(tmp, "$t8", false), toMem;
                 if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
                 tmp = tmpt;
 
-                if (toMem.empty()) { // sw $t, k*4($fp)
-                    generatedCode.push_back("lw " + tmp + ", " + to_string(k * 4) + "($sp)");
+                if (toMem.empty()) { // sw $t, k*4($sp)
+                    if (isNum(tmp)) {
+                        // do nothing
+//                      you don't need to save a number to a stack, do you?
+//                      generatedCode.push_back("li $t8, " + tmp);
+//                      generatedCode.push_back("sw $t8, " + to_string(paramCnt * 4) + "($sp)");
+                    } else {
+                        generatedCode.push_back("sw " + tmp + ", " + to_string(paramCnt * 4) + "($sp)");
+                        paramCnt++;
+                    }
                 } else {
                     generatedCode.push_back("lw $t8, " + toMem);
-                    generatedCode.push_back("sw $t8, " + to_string(k * 4) + "($sp)");
+                    generatedCode.push_back("sw $t8, " + to_string(paramCnt * 4) + "($sp)");
+                    paramCnt++;
                 }
             }
-            generatedCode.push_back("sw $ra, " + to_string(params.size() * 4) + "($sp)");
-            if (params.size()) {
+            generatedCode.push_back("sw $ra, " + to_string(paramCnt * 4) + "($sp)");
+            if (!params.empty()) {
                 generatedCode.push_back("addi $fp, $fp, " + to_string(params.size() * 4));
                 fpBias += params.size() * 4;
             }
@@ -288,30 +611,37 @@ void mipsGen() {
             }
 
             // recover from stack
-            if (params.size()) {
+            if (!params.empty()) {
                 generatedCode.push_back("addi $fp, $fp, -" + to_string(params.size() * 4));
                 fpBias -= params.size() * 4;
             }
 
-            for (int k = 0; k < params.size(); k++) {
+            paramCnt = 0;
+            for (k = 0; k < params.size(); k++) {
                 string tmp = params[k];
                 string tmpt = getAddr(tmp, "$t8", false), toMem;
                 if (tmpt == "$t8") toMem = getAddr(tmp, "", false);
                 tmp = tmpt;
 
                 if (toMem.empty()) { // sw $t, k*4($fp)
-                    generatedCode.push_back("lw " + tmp + to_string(k * 4) + "($sp)");
+                    if (isNum(tmp)) {
+                        // nothing to do
+                    } else {
+                        generatedCode.push_back("lw " + tmp + ", " + to_string(paramCnt * 4) + "($sp)");
+                        paramCnt++;
+                    }
                 } else {
-                    generatedCode.push_back("lw $t8, " + to_string(k * 4) + "($sp)");
+                    generatedCode.push_back("lw $t8, " + to_string(paramCnt * 4) + "($sp)");
                     generatedCode.push_back("sw $t8, " + toMem);
+                    paramCnt++;
                 }
             }
-            generatedCode.push_back("lw $ra, " + to_string(params.size() * 4) + "($sp)");
-            generatedCode.push_back("addi $sp, $sp, " + to_string((params.size() + 1) * 4));
+            generatedCode.push_back("lw $ra, " + to_string(paramCnt * 4) + "($sp)");
+            generatedCode.push_back("addi $sp, $sp, " + to_string((paramCnt + 1) * 4));
             continue;
         }
 
-        // ret
+        // ret TODO
         if (s.substr(0, 3) == "ret") {
             if (s.size() > 3) {
                 int start = 3;
@@ -323,7 +653,7 @@ void mipsGen() {
                 for (int j = start; j < s.size(); j++) {
                     tmp += s[j];
                 }
-                tmp = getAddr(tmp, "$v0", false);
+                tmp = getAddr(tmp, "$v0", true);
                 if (tmp != "$v0") {
                     if (isNum(tmp)) {
                         generatedCode.push_back("li $v0, " + tmp);
@@ -334,62 +664,13 @@ void mipsGen() {
             }
 
             generatedCode.emplace_back("jr $ra");
+            continue;
         }
 
         // exp
         if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%') {
-            string a, b, c, res;
-            stringstream input;
-            input << s;
-            string toMem;
-            while (input >> res) {
-                if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%") continue;
-                if (a.empty()) a = res;
-                else if (b.empty()) b = res;
-                else if (c.empty()) c = res;
-            }
-            if (s[0] == '+' || s[0] == '*') {
-                if (isNum(a)) {
-                    swap(a, b);
-                }
-            }
-            a = getAddr(a, "$t8", true);
-            b = getAddr(b, "$t9", true);
-            string tmpc = getAddr(c, "$t8", false);
-            string endc = getAddr(c, "", false);
-            if (tmpc == "$t8") toMem = getAddr(c, "", false);
-            c = tmpc;
-
-            string tmp;
-            if (s[0] == '+') {
-                generatedCode.push_back("add " + c + ", " + a + ", " + b);
-            } else if (s[0] == '-') {
-                if (isNum(a)) {
-                    generatedCode.push_back("li $t8, " + a);
-                    a = "$t8";
-                }
-                generatedCode.push_back("sub " + c + ", " + a + ", " + b);
-            } else if (s[0] == '*') {
-                generatedCode.push_back("mul " + c + ", " + a + ", " + b);
-            } else if (s[0] == '/') {
-                if (isNum(a)) {
-                    generatedCode.push_back("li $t8, " + a);
-                    a = "$t8";
-                }
-                generatedCode.push_back("div " + a + ", " + b);
-                generatedCode.push_back("mflo " + c);
-            } else if (s[0] == '%') {
-                if (isNum(a)) {
-                    generatedCode.push_back("li $t8, " + a);
-                    a = "$t8";
-                }
-                generatedCode.push_back("div " + a + ", " + b);
-                generatedCode.push_back("mfhi " + c);
-            }
-
-            if (tmpc == "$t8") {
-                generatedCode.push_back("sw $t8, " + endc);
-            }
+            mipsGenExp(s);
+            generatedStatus[i] = true;
             continue;
         }
 
@@ -447,20 +728,23 @@ void mipsGen() {
                 if (s[start] != ' ') break;
                 start++;
             }
-            string tmp;
+            string tmp, toMem;
             for (int j = start; j < s.size(); j++) {
                 tmp += s[j];
             }
-            tmp = getAddr(tmp, "$t8", false);
+            string ttmp = getAddr(tmp, "$t8", false);
+            if (ttmp == "$t8") toMem = getAddr(tmp, "", false);
+            tmp = ttmp;
 
             generatedCode.push_back("# read %s " + tmp);
             generatedCode.emplace_back("li $v0, 5");
             generatedCode.emplace_back("syscall");
-            if (tmp != "$t8") {
-                generatedCode.push_back("move " + tmp + ", $v0");
+            if (!toMem.empty()) { // move $t8, $v0
+                generatedCode.push_back("sw $v0, " + toMem);
             } else {
-                generatedCode.push_back("sw $v0, " + tmp);
+                generatedCode.push_back("move " + tmp + ", $v0");
             }
+            continue;
         }
 
         // printf
@@ -477,17 +761,22 @@ void mipsGen() {
             generatedCode.push_back("# printf " + tmp);
             if (stringPrint.count(tmp)) {
                 generatedCode.emplace_back("li $v0, 4");
-                generatedCode.push_back("la $a0,  " + tmp);
+                generatedCode.push_back("la $a0, " + tmp);
                 generatedCode.emplace_back("syscall");
             } else {
                 tmp = getAddr(tmp, "$t8", true);
                 generatedCode.emplace_back("li $v0, 1");
-                generatedCode.push_back("move $a0,  " + tmp);
+                if (isNum(tmp)) {
+                    generatedCode.push_back("li $a0, " + tmp);
+                } else {
+                    generatedCode.push_back("move $a0, " + tmp);
+                }
                 generatedCode.emplace_back("syscall");
             }
             continue;
         }
     }
+
     generatedCode.emplace_back("li $v0, 10");
     generatedCode.emplace_back("syscall");
 }
