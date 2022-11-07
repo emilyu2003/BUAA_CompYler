@@ -57,7 +57,7 @@ int main() {
     } else {
         printf("plz check your syntax\n");
     }
-    printMiddleCode();
+    //printMiddleCode();
 
     //generatora
     initGenerator();

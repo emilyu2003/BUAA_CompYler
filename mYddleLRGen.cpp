@@ -15,8 +15,6 @@
 
 using namespace std;
 
-vector<string> utils;
-
 string tAssign;
 
 void printCode(string toFile, string format, string str) {
@@ -315,7 +313,7 @@ void genFuncParamCode(string type, string name) {
     }
 }
 
-string genCallFuncCode(string name) {
+string genCallFuncCode(string name, vector<string> utils) {
     IDENT ident = getIdentTemporarily(name);
     string func = getName("t_");
     vector<string> rParams;
@@ -324,7 +322,7 @@ string genCallFuncCode(string name) {
         rParams.push_back(tt);
     }
 
-    for (auto tt : rParams) {
+    for (const auto& tt : rParams) {
         printCode("test.txt", "push %s\n", tt);
         middleCode.push_back("push " + tt);
     }

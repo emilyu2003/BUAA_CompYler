@@ -37,7 +37,7 @@ void genPrintfCode(std::string str, std::vector<std::string> vars);
 
 std::string genScanfCode();
 
-std::string genCallFuncCode(std::string name);
+std::string genCallFuncCode(std::string name, std::vector<std::string> utils);
 
 void genAndCode(std::string str, std::string endStr);
 
@@ -59,7 +59,6 @@ void genString(std::string str);
 
 bool cmpPriority(std::string a, std::string b);
 
-extern std::vector<std::string> utils;
 extern int curBlockNum;
 extern std::string tAssign;
 

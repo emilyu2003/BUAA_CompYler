@@ -1,21 +1,18 @@
-// 测试简单函数
-int ga = 10;
-int gb = -1024;
-
-int add(int a, int b) {
-	int r = a + b;
-	return r;
+int temp;
+int a(){
+    temp=7;
+    return 1;
 }
-
-int sub(int a, int b) {
-	a = a - b;
-	return a;
+int b(){
+    temp=9;
+    return a()+3;
 }
-
-int main() {
-	a = add(add(10,20), sub(100,10));
-	b = sub(add(ga,gc) + add(10,5) / 3, sub(100,add(a,30)));
-	printf("5: %d %d\n",a,b);
-
-	return 0;
+int c(){
+    temp=b()+3;
+    return b()+5;
+}
+int main(){
+    printf("%d\n",c()*b());
+    printf("%d\n",temp);
+    return 0;
 }

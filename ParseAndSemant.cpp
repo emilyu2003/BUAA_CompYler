@@ -140,8 +140,8 @@ string Number_S() {
     return tmpStr;
 }
 
-string FuncRParams_S() {
-    utils.clear();
+vector<string> FuncRParams_S() {
+    vector<string> utils;
     string tmpStr;
     int tmp = peek();   // tmp == IDENFR
     while (tmp != RPARENT) {    // TODO dont know how to get type of RPARAMS
@@ -157,7 +157,7 @@ string FuncRParams_S() {
         tmp = peek();
     }
     printParseResult_S("FuncRParams_S");
-    return tmpStr;
+    return utils;
 }
 
 string PrimaryExp_S() {
@@ -211,13 +211,14 @@ string UnaryExp_S() {
                 now_S = getSym(); // LPARENT
                 //tmpStr += " " + getStr() + " ";
                 tmp = peek();
+                vector<string> utils;
                 if (tmp != RPARENT) {
-                    FuncRParams_S();
+                    utils = FuncRParams_S();
                     //tmpStr += FuncRParams_S() + " ";
                     //tmpStr += genCallFuncCode(name);
                 }
                 flagFunc = 1;
-                tmpStr += genCallFuncCode(name);
+                tmpStr += genCallFuncCode(name, utils);
                 now_S = getSym(); // RPARENT
                 //tmpStr += " " + getStr() + " ";
             } else {
