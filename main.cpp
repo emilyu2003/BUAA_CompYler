@@ -57,9 +57,14 @@ int main() {
     } else {
         printf("plz check your syntax\n");
     }
-    //printMiddleCode();
+//    FILE *f = fopen("middleCode.txt", "w");
+//    //printMiddleCode();
+//    for (auto &i: middleCode) {
+//        fprintf(f, "%s\n", i.c_str());
+//    }
+//    fclose(f);
 
-    //generatora
+    //generator
     initGenerator();
     mipsGen();
 

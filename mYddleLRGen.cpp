@@ -30,34 +30,6 @@ void genString(string str) {
     middleCode.push_back(str);
 }
 
-string dealUnaryOp(string str) {    //todo: !-+-a
-    string ttmp, res;
-
-    stringstream input;
-    input << str;
-
-    while (input >> res) {
-        if (res.size() > 1 && (res[0] == '+' || res[0] == '-')) {
-            int start = 0;
-            string sym = "+";
-            for (; start < res.size(); start++) {
-                if (!(res[start] == '-' || res[start] == '+')) break;
-                if (sym == "+" && res[start] == '-') sym = '-';
-                else if (sym == "-" && res[start] == '-') sym = '+';
-            }
-            if (sym == "+") {
-                ttmp += " " + res.substr(start) + " ";
-            } else {
-                ttmp += " 0 " + res.substr(start) + " - ";
-            }
-        } else {
-            ttmp += " " + res + " ";
-        }
-    }
-
-    return ttmp;
-}
-
 string getLvalCode(string str) {
     string name, len1, len2;
 
@@ -79,16 +51,48 @@ string getLvalCode(string str) {
             cnt2 = i;
         }
     }
+
+    // ident
     if (cnt1 == -1) {
-        if (isNum(str)) return str;
+        int flag = 0;
+        if (str.find("!") != -1) {
+            flag = 1;
+            str = str.substr(str.find("!") + 1);
+        }
+        if (isNum(str)) {
+            int num = stoi(str);
+            if (flag) {
+                if (num == 0) return to_string(1);
+                else return to_string(0);
+            } else {
+                return str;
+            }
+        }
         int tmpPos = getIdentPos(str);
-        if (tmpPos == -1) return str;
+        if (tmpPos == -1) { // TODO
+            if (flag) {
+                string tt = getName("t_");
+                middleCode.push_back("seq " + tt + " " + str + " $0 ");
+                return tt;
+            }
+            return str;
+        }
         IDENT tmp = identTable[tmpPos];
         if (tmp.value_valid) {
+            if (flag) {
+                return to_string(!tmp.value[0]);
+            }
             return to_string(tmp.value[0]);
+        }
+        if (flag) {
+            string tt = getName("t_");
+            middleCode.push_back("seq " + tt + " " + tmp.genName + " $0 ");
+            return tt;
         }
         return tmp.genName;
     }
+
+    // array
     int tmpPos = getIdentPos(name);
     IDENT tmp = identTable[tmpPos];
     if (tmp.type == CONST_ARR_T_D1 || tmp.type == ARRAY_T_D1) {
@@ -113,7 +117,7 @@ string genExpCode(string str) {
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
     string res, mCode, tt;
-    str = dealUnaryOp(str);
+    //str = dealUnaryOp(str);
     stringstream input;
     input << str;
     int flag = 0, funcFlag = 0;
@@ -143,19 +147,50 @@ string genExpCode(string str) {
                 poNo.push_back(to_string(ansNum));
             } else {
                 tt = getName("t_");
-                if (isNum(a1)) {
-                    if (a1 == "0") {
-                        a1 = "$0";
-                    }
-                } else if (isNum(a2)) {
-                    if (a2 == "0") {
-                        a2 = "$0";
-                    }
-                }
                 poNo.push_back(tt);
-                middleCode.push_back(res + " " + a1 + " " + a2 + " " + tt);
-                mCode.append(res + " ").append(a1 + " ").append(a2 + " ")
-                        .append(tt).append("\n");
+
+                if (res == "<" || res == ">=" || res == ">" || res == "<=" || res == "==" || res == "!=") {
+                    if (isNum(a1)) {
+                        swap(a1, a2);
+                        if (res == "<") res = ">=";
+                        else if (res == ">") res = "<=";
+                        else if (res == "<=") res = ">";
+                        else if (res == ">=") res = "<";
+                    }
+                    if (res == "<") {
+                        middleCode.push_back("slt " + a1 + " " + a2 + " " + tt);
+                        mCode.append("slt ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    } else if (res == ">") {
+                        middleCode.push_back("sgt " + a1 + " " + a2 + " " + tt);
+                        mCode.append("sgt ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    } else if (res == ">=") {
+                        middleCode.push_back("sge " + a1 + " " + a2 + " " + tt);
+                        mCode.append("sge ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    } else if (res == "<=") {
+                        middleCode.push_back("sle " + a1 + " " + a2 + " " + tt);
+                        mCode.append("sle ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    } else if (res == "==") {
+                        middleCode.push_back("seq " + a1 + " " + a2 + " " + tt);
+                        mCode.append("seq ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    } else if (res == "!=") {
+                        middleCode.push_back("sne " + a1 + " " + a2 + " " + tt);
+                        mCode.append("sne ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
+                    }
+                    poNo.push_back(tt);
+                } else {
+                    if (isNum(a1)) {
+                        if (a1 == "0") {
+                            a1 = "$0";
+                        }
+                    } else if (isNum(a2)) {
+                        if (a2 == "0") {
+                            a2 = "$0";
+                        }
+                    }
+                    middleCode.push_back(res + " " + a1 + " " + a2 + " " + tt);
+                    mCode.append(res + " ").append(a1 + " ").append(a2 + " ")
+                            .append(tt).append("\n");
+                }
 
                 printCode("test.txt", "%s", mCode);
                 mCode.clear();
@@ -165,7 +200,6 @@ string genExpCode(string str) {
             poNo.push_back(res);
         }
     }
-
     if (!poNo.empty()) {
         return getLvalCode(poNo.back());
     }
@@ -322,7 +356,7 @@ string genCallFuncCode(string name, vector<string> utils) {
         rParams.push_back(tt);
     }
 
-    for (const auto& tt : rParams) {
+    for (const auto &tt: rParams) {
         printCode("test.txt", "push %s\n", tt);
         middleCode.push_back("push " + tt);
     }
@@ -424,92 +458,6 @@ void genReturnCode(string str) {
     middleCode.push_back("ret" + t2);
 }
 
-string genCondCode(string str) {
-    vector<string> poNo;
-    poNo.clear();
-    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-
-    //int tCnt = -1;
-    string res1, mCode, tt, expCode;
-    stringstream input;
-    input << str;
-
-    vector<string> expStack;
-
-    string a;
-    while (input >> res1) {
-        if (res1 == "==" || res1 == "!=" || res1 == ">" || res1 == "<" || res1 == "<=" || res1 == ">=") {
-            expStack.push_back(expCode);
-            expCode.clear();
-            expStack.push_back(res1);
-        } else {
-            if (isCalSym(res1)) {
-                string a2 = poNo.back();
-                poNo.pop_back();
-                string a1 = poNo.back();
-                poNo.pop_back();
-            }
-        }
-    }
-    if (!expCode.empty()) {
-        expStack.push_back(expCode);
-    }
-
-    for (const auto &res: expStack) {
-        if (isRelSym(res)) {
-            string a2 = poNo.back();
-            a2 = genExpCode(a2);
-            poNo.pop_back();
-            string a1 = poNo.back();
-            a1 = genExpCode(a1);
-            poNo.pop_back();
-
-            if (isNum(a1) && isNum(a2)) {
-                int ansNum = calculate(a1, a2, res);
-                poNo.push_back(to_string(ansNum));
-            } else {
-                tt = getName("t_");
-                if (res == "<") {
-                    mCode.append("slt ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
-                } else if (res == ">") {
-                    mCode.append("slt ").append(a2 + " ").append(a1 + " ").append(tt + "\n");
-                } else if (res == ">=") {    // a >= b  -> a + 1 > b //TODO 2147483647?
-                    string tt2 = getName("t_");
-                    poNo.push_back(tt2);
-                    mCode.append("li ").append(tt2 + " ").append("0x1\n");
-                    mCode.append("slt ").append(a1 + " ").append(a2 + " ").append(tt2 + "\n");
-                    mCode.append("movz ").append(tt2 + " ").append(tt + " ").append(tt + "\n");
-                } else if (res == "<=") {    // a <= b  -> a < b + 1
-                    string tt2 = getName("t_");
-                    mCode.append("li ").append(tt2 + " ").append("0x1\n");
-                    mCode.append("slt ").append(a2 + " ").append(a1 + " ").append(tt2 + "\n");
-                    mCode.append("movz ").append(tt2 + " ").append(tt + " ").append(tt + "\n");
-                } else if (res == "==") {    // a >= b and a <= b
-                    string tt2 = getName("t_");
-                    mCode.append("li ").append(tt2 + " ").append("0x1\n");
-                    mCode.append("sub ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
-                    mCode.append("movz ").append(tt2 + " ").append(tt + " ").append(tt + "\n");
-                } else if (res == "!=") {
-                    string tt2 = getName("t_");
-                    mCode.append("xor ").append(a1 + " ").append(a2 + " ").append(tt2 + "\n");
-                    mCode.append("slt ").append(tt + " ").append("$0 ").append(tt + "\n");
-                    mCode.append("slt ").append(a2 + " ").append("$0 ").append(tt + "\n");
-                }
-                poNo.push_back(tt);
-            }
-        } else {
-            poNo.push_back(res);
-        }
-    }
-
-    printCode("test.txt", "%s", mCode);
-    middleCode.push_back(mCode);
-
-    if (!poNo.empty()) {
-        return getLvalCode(poNo.back());
-    }
-    return tt;
-}
 
 void genAndCode(string str, string endStr) {
     vector<string> expStack;
@@ -523,7 +471,7 @@ void genAndCode(string str, string endStr) {
         if (res1 == "&&") {
             expStack.push_back(expCode);
             expCode.clear();
-            expStack.push_back(res1);
+            //expStack.push_back(res1);
         } else {
             expCode += " " + res1 + " ";
         }
@@ -533,14 +481,14 @@ void genAndCode(string str, string endStr) {
     }
 
     for (auto res: expStack) {
-        string tt = genCondCode(res);
+        string tt = genExpCode(res);
+        middleCode.push_back("beq $0 " + tt + " " + endStr);
         mCode.append("beq $0 ").append(tt + " ").append(endStr + "\n");
     }
     printCode("test.txt", "%s", mCode);
-    middleCode.push_back(mCode);
 }
 
-void genIfCode(string str, string beginStr, string elseStr, string endIfStr) {
+void genCondCode(string str, string beginStr, string elseStr, string endIfStr) {
     vector<string> expStack;
     stringstream input;
     input << str;
@@ -561,13 +509,12 @@ void genIfCode(string str, string beginStr, string elseStr, string endIfStr) {
         expStack.push_back(expCode);
     }
 
-
     for (auto expStr: expStack) {
         genAndCode(expStr, endStr);
         mCode.append("j ").append(beginStr + "\n");
+        middleCode.push_back("j " + beginStr);
     }
     printCode("test.txt", "%s", mCode);
-    middleCode.push_back(mCode);
 }
 
 bool isNum(string str) {
@@ -582,15 +529,8 @@ bool isNum(string str) {
 
 bool isCalSym(string res) {
     if (res == "+" || res == "-" || res == "/" || res == "%"
-        || res == "*") {
-        return true;
-    }
-    return false;
-}
-
-bool isRelSym(string res) {
-    if (res == ">" || res == "<" || res == "!=" || res == "=="
-        || res == "<=" || res == ">=") {
+        || res == "*" || res == "!" || res == ">=" || res == ">"
+        || res == "<=" || res == "<" || res == "==" || res == "!=") {
         return true;
     }
     return false;
@@ -604,6 +544,7 @@ int calculate(string a1, string a2, string sym) {
     if (sym == "*") return b1 * b2;
     if (sym == "/") return b1 / b2;
     if (sym == "%") return b1 % b2;
+    if (sym == "!") return b2 == 0;
     if (sym == "<") return b1 < b2;
     if (sym == "<=") return b1 <= b2;
     if (sym == ">") return b1 > b2;

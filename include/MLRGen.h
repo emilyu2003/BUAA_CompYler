@@ -11,15 +11,11 @@ void printCode(std::string toFile, std::string format, std::string str);
 
 std::string genExpCode(std::string str);
 
-std::string genCondCode(std::string str);
-
 std::string getLvalCode(std::string str);
 
 bool isNum(std::string str);
 
 bool isCalSym(std::string s1);
-
-bool isRelSym(std::string res);
 
 int calculate(std::string s1, std::string s2, std::string s3);
 
@@ -43,7 +39,7 @@ void genAndCode(std::string str, std::string endStr);
 
 std::string genRelCode(std::string str, std::string endStr);
 
-void genIfCode(std::string cond, std::string startIf, std::string startElse, std::string endIf);
+void genCondCode(std::string str, std::string beginStr, std::string elseStr, std::string endIfStr);
 
 void genWhileCode();
 

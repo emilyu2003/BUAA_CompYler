@@ -115,7 +115,7 @@ void mipsGenExp(string s) {
     input << s;
     string toMem;
     while (input >> res) {
-        if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%") continue;
+        if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%" || res == "!") continue;
         if (a.empty()) a = res;
         else if (b.empty()) b = res;
         else if (c.empty()) c = res;
@@ -163,10 +163,85 @@ void mipsGenExp(string s) {
         }
         generatedCode.push_back("div " + a + ", " + b);
         generatedCode.push_back("mfhi " + c);
+    } else if (s[0] == '!') {
+        if (isNum(b)) {
+            generatedCode.push_back("li $t9, " + b);
+            b = "$t9";
+        }
+        generatedCode.push_back("seq " + c + ", " + b + ", $0");
     }
 
     if (tmpc == "$t8") {
         generatedCode.push_back("sw $t8, " + endc);
+    }
+}
+
+void mipsGenAssign(string s) {
+    stringstream input;
+    input << s;
+    string res, a, b;
+    string toMem, asnVal;
+    while (input >> res) {
+        if (res == "=") {
+            continue;
+        }
+        if (a.empty()) {
+            a = res;
+            string tmpa = getAddr(a, "$t8", false);
+            if (tmpa == "$t8") toMem = getAddr(a, "", false);
+            a = tmpa;
+        } else {
+            if (isNum(res) && toMem.empty()) {
+                generatedCode.push_back("li " + a + ", " + res);
+            } else if (isNum(res) && !toMem.empty()) {
+                generatedCode.push_back("li $t8, " + res);
+                generatedCode.push_back("sw $t8, " + toMem);
+            } else {
+                b = res;
+                if (b == "RET") {
+                    b = "$v0";
+                } else {
+                    string tmpb = getAddr(b, "$t9", false);
+                    if (tmpb == "$t9") asnVal = getAddr(b, "", false);  // 0($xp) = toMem || b
+                    b = tmpb;
+                }
+
+                if (asnVal.empty() && toMem.empty()) {  // $t = $t
+                    generatedCode.push_back("move " + a + ", " + b);
+                } else if (asnVal.empty() && !toMem.empty()) {  // 0($xp) = $t
+                    generatedCode.push_back("sw " + b + ", " + toMem);
+                } else if (!asnVal.empty() && toMem.empty()) {  // $t = 0($xp)
+                    generatedCode.push_back("lw " + a + ", " + asnVal);
+                } else if (!asnVal.empty() && !toMem.empty()) { // 0($xp) = 0($xp)
+                    generatedCode.push_back("lw $t9, " + asnVal);
+                    generatedCode.push_back("sw $t9, " + toMem);
+                }
+            }
+        }
+    }
+}
+
+void mipsGenGetint(string s) {
+    int start = 4;
+    while (start < s.size()) {
+        if (s[start] != ' ') break;
+        start++;
+    }
+    string tmp, toMem;
+    for (int j = start; j < s.size(); j++) {
+        tmp += s[j];
+    }
+    string ttmp = getAddr(tmp, "$t8", false);
+    if (ttmp == "$t8") toMem = getAddr(tmp, "", false);
+    tmp = ttmp;
+
+    generatedCode.push_back("# read %s " + tmp);
+    generatedCode.emplace_back("li $v0, 5");
+    generatedCode.emplace_back("syscall");
+    if (!toMem.empty()) { // move $t8, $v0
+        generatedCode.push_back("sw $v0, " + toMem);
+    } else {
+        generatedCode.push_back("move " + tmp + ", $v0");
     }
 }
 
@@ -225,7 +300,7 @@ void mipsGen() {
         }
 
         // def
-        if (s.substr(0, 7) == "var int" || s.substr(0, 7) == "const int") {
+        if (s.substr(0, 7) == "var int" || s.substr(0, 9) == "const int") {
 
             generatedStatus[i] = true;
             continue;
@@ -365,7 +440,7 @@ void mipsGen() {
         }
 
         // exp
-        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%') {
+        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!') {
             mipsGenExp(s);
             generatedStatus[i] = true;
             continue;
@@ -373,75 +448,29 @@ void mipsGen() {
 
         // assign
         if (s.find('=') != -1) {
-            stringstream input;
-            input << s;
-            string res, a, b;
-            string toMem, asnVal;
-            while (input >> res) {
-                if (res == "=") {
-                    continue;
-                }
-                if (a.empty()) {
-                    a = res;
-                    string tmpa = getAddr(a, "$t8", false);
-                    if (tmpa == "$t8") toMem = getAddr(a, "", false);
-                    a = tmpa;
-                } else {
-                    if (isNum(res) && toMem.empty()) {
-                        generatedCode.push_back("li " + a + ", " + res);
-                    } else if (isNum(res) && !toMem.empty()) {
-                        generatedCode.push_back("li $t8, " + res);
-                        generatedCode.push_back("sw $t8, " + toMem);
-                    } else {
-                        b = res;
-                        if (b == "RET") {
-                            b = "$v0";
-                        } else {
-                            string tmpb = getAddr(b, "$t9", false);
-                            if (tmpb == "$t9") asnVal = getAddr(b, "", false);  // 0($xp) = toMem || b
-                            b = tmpb;
-                        }
-
-                        if (asnVal.empty() && toMem.empty()) {  // $t = $t
-                            generatedCode.push_back("move " + a + ", " + b);
-                        } else if (asnVal.empty() && !toMem.empty()) {  // 0($xp) = $t
-                            generatedCode.push_back("sw " + b + ", " + toMem);
-                        } else if (!asnVal.empty() && toMem.empty()) {  // $t = 0($xp)
-                            generatedCode.push_back("lw " + a + ", " + asnVal);
-                        } else if (!asnVal.empty() && !toMem.empty()) { // 0($xp) = 0($xp)
-                            generatedCode.push_back("lw $t9, " + asnVal);
-                            generatedCode.push_back("sw $t9, " + toMem);
-                        }
-                    }
-                }
-            }
+            mipsGenAssign(s);
             generatedStatus[i] = true;
             continue;
         }
 
         // getint
         if (s.substr(0, 4) == "read") {
-            int start = 4;
-            while (start < s.size()) {
-                if (s[start] != ' ') break;
-                start++;
-            }
-            string tmp, toMem;
-            for (int j = start; j < s.size(); j++) {
-                tmp += s[j];
-            }
-            string ttmp = getAddr(tmp, "$t8", false);
-            if (ttmp == "$t8") toMem = getAddr(tmp, "", false);
-            tmp = ttmp;
+            mipsGenGetint(s);
+            generatedStatus[i] = true;
+            continue;
+        }
 
-            generatedCode.push_back("# read %s " + tmp);
-            generatedCode.emplace_back("li $v0, 5");
-            generatedCode.emplace_back("syscall");
-            if (!toMem.empty()) { // move $t8, $v0
-                generatedCode.push_back("sw $v0, " + toMem);
-            } else {
-                generatedCode.push_back("move " + tmp + ", $v0");
-            }
+        // j
+        if (s.substr(0, 2) == "j ") {
+            generatedCode.push_back(s);
+            generatedCode.push_back("nop");
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // label
+        if (s.find(":") != -1) {
+            generatedCode.push_back(s);
             generatedStatus[i] = true;
             continue;
         }
@@ -459,7 +488,7 @@ void mipsGen() {
         s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
 
         // def
-        if (s.substr(0, 7) == "var int" || s.substr(0, 7) == "const int") {
+        if (s.substr(0, 7) == "var int" || s.substr(0, 9) == "const int") {
 
             continue;
         }
@@ -641,7 +670,7 @@ void mipsGen() {
             continue;
         }
 
-        // ret TODO
+        // ret
         if (s.substr(0, 3) == "ret") {
             if (s.size() > 3) {
                 int start = 3;
@@ -668,7 +697,7 @@ void mipsGen() {
         }
 
         // exp
-        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%') {
+        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!') {
             mipsGenExp(s);
             generatedStatus[i] = true;
             continue;
@@ -676,74 +705,13 @@ void mipsGen() {
 
         // assign
         if (s.find('=') != -1) {
-            stringstream input;
-            input << s;
-            string res, a, b;
-            string toMem, asnVal;
-            while (input >> res) {
-                if (res == "=") {
-                    continue;
-                }
-                if (a.empty()) {
-                    a = res;
-                    string tmpa = getAddr(a, "$t8", false);
-                    if (tmpa == "$t8") toMem = getAddr(a, "", false);
-                    a = tmpa;
-                } else {
-                    if (isNum(res) && toMem.empty()) {
-                        generatedCode.push_back("li " + a + ", " + res);
-                    } else if (isNum(res) && !toMem.empty()) {
-                        generatedCode.push_back("li $t8, " + res);
-                        generatedCode.push_back("sw $t8, " + toMem);
-                    } else {
-                        b = res;
-                        if (b == "RET") {
-                            b = "$v0";
-                        } else {
-                            string tmpb = getAddr(b, "$t9", false);
-                            if (tmpb == "$t9") asnVal = getAddr(b, "", false);  // 0($xp) = toMem || b
-                            b = tmpb;
-                        }
-
-                        if (asnVal.empty() && toMem.empty()) {  // $t = $t
-                            generatedCode.push_back("move " + a + ", " + b);
-                        } else if (asnVal.empty() && !toMem.empty()) {  // 0($xp) = $t
-                            generatedCode.push_back("sw " + b + ", " + toMem);
-                        } else if (!asnVal.empty() && toMem.empty()) {  // $t = 0($xp)
-                            generatedCode.push_back("lw " + a + ", " + asnVal);
-                        } else if (!asnVal.empty() && !toMem.empty()) { // 0($xp) = 0($xp)
-                            generatedCode.push_back("lw $t9, " + asnVal);
-                            generatedCode.push_back("sw $t9, " + toMem);
-                        }
-                    }
-                }
-            }
+            mipsGenAssign(s);
             continue;
         }
 
         // getint
         if (s.substr(0, 4) == "read") {
-            int start = 4;
-            while (start < s.size()) {
-                if (s[start] != ' ') break;
-                start++;
-            }
-            string tmp, toMem;
-            for (int j = start; j < s.size(); j++) {
-                tmp += s[j];
-            }
-            string ttmp = getAddr(tmp, "$t8", false);
-            if (ttmp == "$t8") toMem = getAddr(tmp, "", false);
-            tmp = ttmp;
-
-            generatedCode.push_back("# read %s " + tmp);
-            generatedCode.emplace_back("li $v0, 5");
-            generatedCode.emplace_back("syscall");
-            if (!toMem.empty()) { // move $t8, $v0
-                generatedCode.push_back("sw $v0, " + toMem);
-            } else {
-                generatedCode.push_back("move " + tmp + ", $v0");
-            }
+            mipsGenGetint(s);
             continue;
         }
 
@@ -773,6 +741,79 @@ void mipsGen() {
                 }
                 generatedCode.emplace_back("syscall");
             }
+            continue;
+        }
+
+        // if
+        if (s.substr(0, 3) == "beq") {
+            stringstream input;
+            input << s;
+            string toMem, res, a, b;
+            while (input >> res) {
+                if (res == "beq" || res == "$0") continue;
+                if (a.empty()) a = res;
+                else b = res;
+            }
+            a = getAddr(a, "$t8", true);
+            generatedCode.push_back("beq $0, " + a + ", " + b);
+            generatedCode.push_back("nop");
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // cond
+        if (s.substr(0, 3) == "slt" || s.substr(0, 3) == "sgt" || s.substr(0, 3) == "sle"
+            || s.substr(0, 3) == "sge" || s.substr(0, 3) == "seq" || s.substr(0, 3) == "sne") {
+            stringstream input;
+            input << s;
+            string toMem, res, op, a, b, c;
+            while (input >> res) {
+                if (op.empty()) op = res;
+                else if (a.empty()) a = res;
+                else if (b.empty()) b = res;
+                else c = res;
+            }
+            a = getAddr(a, "$t8", true);
+            b = getAddr(b, "$t9", true);
+            string tmpc = getAddr(c, "$t8", false);
+            string endc = getAddr(c, "", false);
+            if (tmpc == "$t8") toMem = getAddr(c, "", false);
+            c = tmpc;
+            if (isNum(a)) {
+                if (a == "0") {
+                    a = "$0";
+                } else {
+                    generatedCode.push_back("li $t8, " + a);
+                    a = "$t8";
+                }
+            }
+            if (isNum(b)) {
+                if (b == "0") {
+                    b = "$0";
+                } else {
+                    generatedCode.push_back("li $t9, " + b);
+                    b = "$t9";
+                }
+            }
+            generatedCode.push_back(op + " " + c + ", " + a + ", " + b);
+
+            if (tmpc == "$t8") {
+                generatedCode.push_back("sw $t8, " + endc);
+            }
+            generatedStatus[i] = true;
+            continue;
+        }
+
+        // j
+        if (s.substr(0, 2) == "j ") {
+            generatedCode.push_back(s);
+            generatedCode.push_back("nop");
+            continue;
+        }
+
+        // label
+        if (s.find(":") != -1) {
+            generatedCode.push_back(s);
             continue;
         }
     }

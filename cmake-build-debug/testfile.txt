@@ -1,18 +1,4 @@
-int temp;
-int a(){
-    temp=7;
-    return 1;
-}
-int b(){
-    temp=9;
-    return a()+3;
-}
-int c(){
-    temp=b()+3;
-    return b()+5;
-}
-int main(){
-    printf("%d\n",c()*b());
-    printf("%d\n",temp);
+int main() {
+    printf("123456\n");
     return 0;
 }

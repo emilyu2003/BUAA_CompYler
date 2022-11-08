@@ -21,6 +21,7 @@ int now_S;
 int isFunc_S;
 vector<string> whileEndCnt;
 vector<string> whileStartCnt;
+vector<string> whileDoCnt;
 
 void printParseResult_S(string s) {
 
@@ -164,6 +165,7 @@ string PrimaryExp_S() {
     string tmpStr;
     int tmp = peek();
     if (tmp == LPARENT) {
+        tmpStr += " ";
         now_S = getSym();
         tmp = peek();
         if (tmp == RPARENT) {
@@ -198,8 +200,11 @@ string UnaryExp_S() {
     int tmp = peek();
     if (tmp == PLUS || tmp == MINU || tmp == NOT) {
         //now_S = getSym();
-        tmpStr += UnaryOp_S();
+        string sym = UnaryOp_S();
+        //tmpStr += UnaryOp_S();
+        tmpStr += " 0 ";
         tmpStr += UnaryExp_S() + " ";
+        tmpStr += " " + sym + " ";
     } else {
         if (tmp == IDENFR) {
             string name;
@@ -628,32 +633,45 @@ string Stmt_S() {
         tmpStr += cond;
         now_S = getSym(); // now_S == RPARENT
 
-        //genIfCode(cond, ifStartStr, elseStartStr, ifEndStr);
+        genCondCode(cond, ifStartStr, elseStartStr, ifEndStr);
         genString(ifStartStr + ":");
 
         tmpStr += " " + getStr() + " ";
         tmpStr += Stmt_S();
         tmp = peek();
+        genString("j " + ifEndStr);
+        genString(elseStartStr + ":");
         if (tmp == ELSETK) {
-            genString(elseStartStr + ":");
             now_S = getSym(); // now_S == ELSETK
             tmpStr += " " + getStr() + " ";
             tmpStr += Stmt_S();
         }
         genString(ifEndStr + ":");
     } else if (tmp == WHILETK) {
-        whileStartCnt.push_back(getName("START_WHILE_"));
-        whileEndCnt.push_back(getName("END_WHILE_"));
+        string startWhileStr = getName("START_WHILE_");
+        string doWhileStr = getName("DO_WHILE_");
+        string endWhileStr = getName("END_WHILE_");
+        whileStartCnt.push_back(startWhileStr);
+        whileDoCnt.push_back(doWhileStr);
+        whileEndCnt.push_back(endWhileStr);
+        string cond;
+
         genString(whileStartCnt.back() + ":");
         now_S = getSym();  // now_S == WHILETK
         tmpStr += " " + getStr() + " ";
         now_S = getSym(); // now_S == LPARENT
         tmpStr += " " + getStr() + " ";
-        tmpStr += Cond_S();
+        cond = Cond_S(); // TODO
+        tmpStr += cond;
+
+        genCondCode(cond, whileDoCnt.back(), "", whileEndCnt.back());
+        genString(doWhileStr + ":");
+
         // now_S == RPARENT
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
         tmpStr += Stmt_S();
+        genString("j " + whileStartCnt.back());
         genString(whileEndCnt.back() + ":");
         whileEndCnt.pop_back();
         whileStartCnt.pop_back();
