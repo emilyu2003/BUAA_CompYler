@@ -37,23 +37,15 @@ std::string genCallFuncCode(std::string name, std::vector<std::string> utils);
 
 void genAndCode(std::string str, std::string endStr);
 
-std::string genRelCode(std::string str, std::string endStr);
-
 void genCondCode(std::string str, std::string beginStr, std::string elseStr, std::string endIfStr);
 
-void genWhileCode();
-
 void genArrCode();
-
-bool cmpPriority(std::string a, std::string b);
-
-std::string dealUnaryOp(std::string str);
 
 void genReturnCode(std::string str);
 
 void genString(std::string str);
 
-bool cmpPriority(std::string a, std::string b);
+std::string getFromStrCons(std::string str);
 
 extern int curBlockNum;
 extern std::string tAssign;

@@ -57,12 +57,12 @@ int main() {
     } else {
         printf("plz check your syntax\n");
     }
-//    FILE *f = fopen("middleCode.txt", "w");
-//    //printMiddleCode();
-//    for (auto &i: middleCode) {
-//        fprintf(f, "%s\n", i.c_str());
-//    }
-//    fclose(f);
+    FILE *f = fopen("middleCode.txt", "w");
+    //printMiddleCode();
+    for (auto &i: middleCode) {
+        fprintf(f, "%s\n", i.c_str());
+    }
+    fclose(f);
 
     //generator
     initGenerator();

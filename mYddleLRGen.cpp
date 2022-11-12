@@ -10,12 +10,15 @@
 #include "MLRGen.h"
 #include "IdentTable.h"
 #include "TLRGen.h"
+#include <unordered_map>
 
 #define PRINT 0
 
 using namespace std;
 
 string tAssign;
+
+unordered_map<string, string> outputStrCons;
 
 void printCode(string toFile, string format, string str) {
     if (PRINT) {
@@ -382,10 +385,10 @@ void genPrintfCode(string strCon, vector<string> vars) {
             if (!tmp.empty()) {
                 arrangement.push_back(1);
                 strCons.push_back("\"" + tmp + "\"");
-                string name = getName("str_");
+                string name = getFromStrCons(tmp);
                 strNames.push_back(name);
 
-                middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
+                // middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
                 if (PRINT) {
                     FILE *f = fopen("test.txt", "a");
                     fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
@@ -402,10 +405,10 @@ void genPrintfCode(string strCon, vector<string> vars) {
     if (!tmp.empty()) {
         arrangement.push_back(1);
         strCons.push_back("\"" + tmp + "\"");
-        string name = getName("str_");
+        string name = getFromStrCons(tmp);
         strNames.push_back(name);
 
-        middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
+        // middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
         if (PRINT) {
             FILE *f = fopen("test.txt", "a");
             fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
@@ -534,6 +537,14 @@ bool isCalSym(string res) {
         return true;
     }
     return false;
+}
+
+string getFromStrCons(string a) {
+    if (outputStrCons.count(a) == 0) {
+        outputStrCons[a] = getName("str_");
+        middleCode.push_back("const string " + outputStrCons[a] + " = " + +"\"" + a + "\"");
+    }
+    return outputStrCons[a];
 }
 
 int calculate(string a1, string a2, string sym) {

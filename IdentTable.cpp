@@ -277,7 +277,7 @@ int getIdentPos(std::string name) {
 string getName(string a) {
     int flag = 0;
     for (int t = 0; t < 1000; t++) {
-        string str = a + to_string(t);
+        string str = a + to_string(t) + "_" + to_string(getBlockNum());
         for (int i = 0; i < totalName.size(); i++) {
             if (str == totalName[i]) break;
             if (i == totalName.size() - 1) flag = 1;
