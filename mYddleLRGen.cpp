@@ -256,14 +256,7 @@ void genAssignCode(string lval, string exp, int dim) {
     if (dim == 0) {
         string tt = genExpCode(exp);
         IDENT ident = getIdentTemporarily(lval);
-        if (ident.genName.empty()) {
-            middleCode.push_back(lval + " = " + tt);
-            if (PRINT) {
-                FILE *f = fopen("test.txt", "a");
-                fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
-                fclose(f);
-            }
-        } else {
+        if (!ident.genName.empty()) {
             if (isNum(tt)) {
                 ident.value[0] = stoi(tt);
                 updateValue(ident);
@@ -271,13 +264,8 @@ void genAssignCode(string lval, string exp, int dim) {
                 unvalidateValue(ident);
             }
             lval = ident.genName;
-            middleCode.push_back(lval + " = " + tt);
-            if (PRINT) {
-                FILE *f = fopen("test.txt", "a");
-                fprintf(f, "%s = %s\n", lval.c_str(), tt.c_str());
-                fclose(f);
-            }
         }
+        middleCode.push_back(lval + " = " + tt);
     } else {
         lval = getLvalCode(lval);
         exp.erase(std::remove(exp.begin(), exp.end(), '\n'), exp.end());
@@ -294,7 +282,11 @@ void genAssignCode(string lval, string exp, int dim) {
                 tt = genExpCode(tmp);
                 IDENT ident = getIdentTemporarily(lval);
                 if (isNum(tt)) {
-                    ident.value[rCnt] = stoi(tt);
+                    if (ident.value.size() < rCnt + 1) {
+                        ident.value.push_back(stoi(tt));    // TODO initialize
+                    } else {
+                        ident.value[rCnt] = stoi(tt);
+                    }
                     updateValue(ident);
                 } else {
                     unvalidateValue(ident);

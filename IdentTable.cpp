@@ -57,7 +57,7 @@ void appendConst(string name) {
 
 void appendARR1(string name) {
     IDENT tmp = {name, ARRAY_T_D1};
-    tmp.value = {0};
+    //tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     totalName.push_back(name);
@@ -65,7 +65,7 @@ void appendARR1(string name) {
 
 void appendARR2(string name) {
     IDENT tmp = {name, ARRAY_T_D2};
-    tmp.value = {0};
+    //tmp.value = {0};  TODO initialize
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     totalName.push_back(name);
@@ -73,7 +73,7 @@ void appendARR2(string name) {
 
 void appendConstARR1(string name) {
     IDENT tmp = {name, CONST_ARR_T_D1};
-    tmp.value = {0};
+    //tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     totalName.push_back(name);
@@ -81,7 +81,7 @@ void appendConstARR1(string name) {
 
 void appendConstARR2(string name) {
     IDENT tmp = {name, CONST_ARR_T_D2};
-    tmp.value = {0};
+    //tmp.value = {0};
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     totalName.push_back(name);
