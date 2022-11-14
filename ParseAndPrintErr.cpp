@@ -25,7 +25,7 @@ void printParseResult(string s) {
 //    FILE *f = fopen("output.txt", "a");
 //    fprintf(f, "%s", output.c_str());
 //    fclose(f);
-//cout << output;
+//    cout << output;
 }
 
 /* end 默认包括; */
@@ -258,9 +258,9 @@ int UnaryExp() {
                 } else {
                     throwError(ERROR_J, getErrorLine());
                 }
-                if (!ifParamCntCoordinate(tmpParams)) {
+                if (!ifParamCntCoordinate(name, tmpParams.size())) {
                     throwError(ERROR_D, tmpLine);
-                } else if (!ifParamTypeCoordinate(tmpParams)) {
+                } else if (!ifParamTypeCoordinate(name, tmpParams)) {
                     throwError(ERROR_E, tmpLine);
                 }
             } else {
@@ -497,15 +497,17 @@ int VarDef() {
 int VarDecl() {
     // now == INTTK
     VarDef();
-    now = getSym();
-    while (now == COMMA) {
-        VarDef();
+    int tmp = peek();
+    while (tmp == COMMA) {
         now = getSym();
+        VarDef();
+        tmp = peek();
     }
 
-    if (now != SEMICN) {
+    if (tmp != SEMICN) {
         throwError(ERROR_I, getErrorLine());
     } else {
+        now = getSym();
         // now == SEMICN
     }
 
@@ -565,6 +567,7 @@ int FuncFParams(string name) {
     while (tmp != RPARENT && tmp != LBRACE) {
         now = getSym(); // tmp == LPARENT
         IDENT tmpIdent = FuncFParam();
+        pushParam(name, tmpIdent);
         tmp = peek();
         if (tmp == LBRACE) {
             throwError(ERROR_J, getErrorLine());
@@ -707,9 +710,9 @@ int Stmt() {
         } else {
             now = getSym();  //IDENFR
             int rtNum = LVal();
-//            if (rtNum == ERROR_H) {
-//                throwError(ERROR_H, getErrorLine());
-//            }
+            if (rtNum == ERROR_H) {
+                throwError(ERROR_H, getErrorLine());
+            }
             now = getSym(); // now == ASSIGN
             tmp = peek();
             if (tmp == GETINTTK) {

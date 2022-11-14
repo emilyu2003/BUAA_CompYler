@@ -120,7 +120,13 @@ void updateFunc(string name, int len) {
     IDENT func = identTable[funcPos];
     func.paramLen = len;
     identTable[funcPos] = func;
-    totalName.push_back(name);
+}
+
+void pushParam(string name, IDENT ident) {
+    int funcPos = getIdentPos(name);
+    IDENT func = identTable[funcPos];
+    func.params.push_back(ident);
+    identTable[funcPos] = func;
 }
 
 void updateArrD1(string name, string len1) {
@@ -196,21 +202,27 @@ bool ifStrConCntCoordinate(string str, int x) {
     return cnt == x;
 }
 
-bool ifParamTypeCoordinate(vector<int> params) {
-    return true;
-    for (int i = identTableCnt.back(); i < identTable.size(); i++) {
-        if (identTable[i].type != params[i - identTableCnt.back()]) {
-            return false;
-            //return true;
+bool ifParamTypeCoordinate(string name, vector<int> params) {
+    for (auto &i: identTable) {
+        if (name == i.name) {
+            for (int j = 0; j < params.size(); j++) {
+                if (params[j] != i.params[j].type) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
     return true;
 }
 
-bool ifParamCntCoordinate(vector<int> params) {
-    return true;
-//    int cnt = identTable.size() - identTableCnt.back();
-//    return cnt == params.size();
+bool ifParamCntCoordinate(string name, int len) {
+    for (auto &i: identTable) {
+        if (name == i.name) {
+            return i.params.size() == len;
+        }
+    }
+    return false;
 }
 
 void endBlock() {
@@ -251,9 +263,9 @@ void throwError(int code, int line) {
 //    FILE *f = fopen("error.txt", "a");
 //    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
 //    fclose(f);
-    //printf(">>>>>>>>>>>>>>>>>>%d %c\n", line + 1, 'a' - code - 1);
+    printf("%d %c\n", line + 1, 'a' - code - 1);
     lastLine = line;
-    //correctFlag = false;
+    correctFlag = false;
 }
 
 IDENT getIdentTemporarily(std::string name) {

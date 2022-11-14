@@ -73,6 +73,8 @@ void appendIdent(IDENT ident);
 
 void updateFunc(std::string name, int len);
 
+void pushParam(std::string name, IDENT ident);
+
 void updateArrD1(std::string name, std::string len1);
 
 void updateArrD2(std::string name, std::string len1, std::string len2);
@@ -87,9 +89,9 @@ bool ifFormatLegal(std::string str);
 
 bool ifStrConCntCoordinate(std::string str, int x);
 
-bool ifParamTypeCoordinate(std::vector<int> a);
+bool ifParamTypeCoordinate(std::string name, std::vector<int> a);
 
-bool ifParamCntCoordinate(std::vector<int> a);
+bool ifParamCntCoordinate(std::string name, int len);
 
 void endBlock();
 

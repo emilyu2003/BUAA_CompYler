@@ -1,5 +1,10 @@
+const int a = 0;
+void func(int x) {
+;
+}
+
 int main() {
-	int a[5] = {1,2,3,4,5};
-	int b;
+	a = 5;
+	func(a);
 	return 0;
 }
