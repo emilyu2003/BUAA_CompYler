@@ -56,7 +56,7 @@ std::string VarDef_S();
 
 std::string VarDecl_S();
 
-std::string FuncFParam_S();
+std::string FuncFParam_S(std::string funcName);
 
 std::string FuncFParams_S(std::string name);
 

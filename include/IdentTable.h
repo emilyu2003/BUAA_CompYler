@@ -38,8 +38,8 @@ struct IDENT {
     int blockNum;
     int paramLen;
     std::vector<IDENT> params;
-    std::string len1;
-    std::string len2;
+    int len1;
+    int len2;
     bool value_valid;
     std::vector<int> value;
     std::string genName;
@@ -49,7 +49,7 @@ int getBlockNum();
 
 void newBlock();
 
-void updateValue(IDENT ident);
+void updateValue(IDENT ident, int pos, int value);
 
 void unvalidateValue(IDENT ident);
 

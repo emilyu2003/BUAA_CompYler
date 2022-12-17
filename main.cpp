@@ -24,11 +24,7 @@ bool finishedParsing;
 
 int main() {
     freopen("testfile.txt", "r", stdin);
-    //freopen("mips.txt", "w", stdout);
-    freopen("error.txt", "w", stdout);
-
-    //FILE *f = fopen("error.txt", "w");
-    //fclose(f);
+    freopen("mips.txt", "w", stdout);
 
     // read code
     string tmp;
@@ -55,30 +51,30 @@ int main() {
     finishedParsing = false;
     parseAndErr();
     finishedParsing = true;
-//    if (correctFlag) {
-//        //printf("%s", parseAndSemant().c_str());
-//        parseAndSemant();
-//    } else {
-//        printf("plz check your syntax\n");
-//        return 0;
-//    }
-//    FILE *f = fopen("middleCode.txt", "w");
-//    //printMiddleCode();
-//    for (auto &i: middleCode) {
-//        fprintf(f, "%s\n", i.c_str());
-//    }
-//    fclose(f);
+    if (correctFlag) {
+        //printf("%s", parseAndSemant().c_str());
+        parseAndSemant();
+    } else {
+        printf("plz check your syntax\n");
+        return 0;
+    }
+    FILE *f = fopen("middleCode.txt", "w");
+    //printMiddleCode();
+    for (auto &i: middleCode) {
+        fprintf(f, "%s\n", i.c_str());
+    }
+    fclose(f);
 
     //generator
-//    initGenerator();
-//    mipsGen();
+    initGenerator();
+    mipsGen();
 
-    //f = fopen("mips.txt", "w");
-//    for (auto &i: generatedCode) {
-//        //fprintf(f, "%s\n", i.c_str());
-//        cout << i << endl;
-//    }
-    //fclose(f);
+    f = fopen("mips.txt", "w");
+    for (auto &i: generatedCode) {
+        //fprintf(f, "%s\n", i.c_str());
+        cout << i << endl;
+    }
+    fclose(f);
 
     return 0;
 }

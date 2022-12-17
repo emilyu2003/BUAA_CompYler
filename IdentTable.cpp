@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <functional>
+#include <iterator>
 
 using namespace std;
 
@@ -17,6 +19,15 @@ int maxBlockNum = 0;
 vector<int> tmpBlockNums;
 vector<string> totalName;
 vector<int> totalNameCnt;
+
+void trim(string &s) {
+    int index = 0;
+    if (!s.empty()) {
+        while ((index = s.find(' ', index)) != string::npos) {
+            s.erase(index, 1);
+        }
+    }
+}
 
 int getBlockNum() {
     //printTotalTable();
@@ -28,10 +39,16 @@ void newBlock() {
     tmpBlockNums.push_back(maxBlockNum);
 }
 
-void updateValue(IDENT ident) {
-    int pos = getIdentPos(ident.name);
-    identTable[pos].value_valid = false;    //TODO
-    identTable[pos].value = ident.value;
+void updateValue(IDENT ident, int pos, int value) {
+    int idPos = getIdentPos(ident.name);
+    int type = identTable[idPos].type;
+    identTable[idPos].value_valid = (type == CONST_ARR_T_D2 || type == CONST_ARR_T_D1 ||
+                                     type == CONST_T);   // you cant set this to true
+    if (identTable[idPos].value.size() < pos + 1) {
+        identTable[idPos].value.push_back(value);
+    } else {
+        identTable[idPos].value[pos] = value;
+    }
 }
 
 void unvalidateValue(IDENT ident) {
@@ -43,6 +60,7 @@ void appendINT(string name) {
     IDENT tmp = {name, INT_T};
     tmp.value = {0};
     tmp.blockNum = getBlockNum();
+    tmp.len1 = tmp.len2 = 1;
     identTable.push_back(tmp);
     totalName.push_back(name);
 }
@@ -51,6 +69,7 @@ void appendConst(string name) {
     IDENT tmp = {name, CONST_T};
     tmp.value = {0};
     tmp.blockNum = getBlockNum();
+    tmp.len1 = tmp.len2 = 1;
     identTable.push_back(tmp);
     totalName.push_back(name);
 }
@@ -123,24 +142,26 @@ void updateFunc(string name, int len) {
 }
 
 void pushParam(string name, IDENT ident) {
-    int funcPos = getIdentPos(name);
-    IDENT func = identTable[funcPos];
+    IDENT func = getIdentTemporarily(name);
     func.params.push_back(ident);
-    identTable[funcPos] = func;
 }
 
 void updateArrD1(string name, string len1) {
     int arrPos = getIdentPos(name);
     IDENT arr = identTable[arrPos];
-    arr.len1 = (len1);
+    trim(len1);
+    arr.len1 = (stoi(len1));
+    arr.len2 = 1;
     identTable[arrPos] = arr;
 }
 
 void updateArrD2(string name, string len1, string len2) {
     int arrPos = getIdentPos(name);
     IDENT arr = identTable[arrPos];
-    arr.len1 = len1;
-    arr.len2 = len2;
+    trim(len1);
+    trim(len2);
+    arr.len1 = (stoi(len1));
+    arr.len2 = (stoi(len2));
     identTable[arrPos] = arr;
 }
 
@@ -263,9 +284,10 @@ void throwError(int code, int line) {
 //    FILE *f = fopen("error.txt", "a");
 //    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
 //    fclose(f);
-    printf("%d %c\n", line + 1, 'a' - code - 1);
+    // printf("%d %c\n", line + 1, 'a' - code - 1);
     lastLine = line;
-    correctFlag = false;
+    // correctFlag = false;
+    correctFlag = true;
 }
 
 IDENT getIdentTemporarily(std::string name) {

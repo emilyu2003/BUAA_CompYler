@@ -81,35 +81,86 @@ string getLvalCode(string str) {
             return str;
         }
         IDENT tmp = identTable[tmpPos];
-        if (tmp.value_valid) {
-            if (flag) {
-                return to_string(!tmp.value[0]);
+        if (tmp.type == INT_T || tmp.type == CONST_T) {
+            if (tmp.value_valid) {
+                if (flag) {
+                    return to_string(!tmp.value[0]);
+                }
+                return to_string(tmp.value[0]);
             }
-            return to_string(tmp.value[0]);
+            if (flag) {
+                string tt = getName("t_");
+                middleCode.push_back("seq " + tt + " " + tmp.genName + " $0 ");
+                return tt;
+            }
+            return tmp.genName;
         }
-        if (flag) {
-            string tt = getName("t_");
-            middleCode.push_back("seq " + tt + " " + tmp.genName + " $0 ");
-            return tt;
-        }
-        return tmp.genName;
     }
 
     // array
-    int tmpPos = getIdentPos(name);
+    int tmpPos;
+    if (name.empty()) {
+        tmpPos = getIdentPos(str);
+    } else {
+        tmpPos = getIdentPos(name);
+    }
     IDENT tmp = identTable[tmpPos];
     if (tmp.type == CONST_ARR_T_D1 || tmp.type == ARRAY_T_D1) {
-        string tt = genExpCode(len1);
-        if (isNum(tt) && tmp.value_valid) {
-            return to_string(tmp.value[stoi(tt)]);
+        if (len1.empty()) {         // a[x] but paramed as a
+            //return tmp.genName + "@addr";
+            return tmp.genName;
+        } else {
+            string tt;
+            if (isNum(len1)) {
+                tt = to_string(stoi(len1));
+            } else {
+                tt = genExpCode(len1);
+            }
+            if (isNum(tt) && tmp.value_valid) {
+                return to_string(tmp.value[stoi(tt)]) + "@addr";
+            }
+            return tmp.genName + "[" + tt + "]";
         }
-        return tmp.genName + "[" + tt + "]";
     } else if (tmp.type == CONST_ARR_T_D2 || tmp.type == ARRAY_T_D2) {  //TODO
-        genAssignCode("t_len1t", len1, 0);
-        genAssignCode("t_len2", len2, 0);
-        string ttmp = tmp.len2 + " t_len1t  * t_len2 +";
-        genAssignCode("t_len1", ttmp, 0);
-        return tmp.genName + "[t_len1]";
+        if (len1.empty()) {      // a[x][y] but only send param named a
+            //return tmp.genName + "@addr";
+            return tmp.genName;
+        } else if (len2.empty()) {             // a[x][y] but only send param named a[i]
+            string tt;
+            if (isNum(len1)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                tt = to_string(stoi(len1) * tmp.len2);
+            } else {
+                tt = genExpCode(to_string(tmp.len2) + len1 + " * ");
+            }
+//            if (isNum(tt) && tmp.value_valid) {
+//                return to_string(tmp.value[stoi(tt)]) + "@addr";
+//            }
+//            return tmp.genName + "[" + tt + "]" + "@addr";
+            if (isNum(tt) && tmp.value_valid) {
+                return to_string(tmp.value[stoi(tt)]);
+            }
+            return tmp.genName + "[" + tt + "]";
+        } else {    // a[x][y] as a[i][j]
+            string tt;  //TODO
+            if (isNum(len1) && isNum(len2)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
+                tt = to_string(tmp.len2 * stoi(len1) + stoi(len2));
+            } else if (isNum(len1)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                tt = genExpCode(to_string(tmp.len2 * stoi(len1)) + len2 + " + ");
+            } else if (isNum(len2)) {
+                len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
+                tt = genExpCode(to_string(tmp.len2) + len1 + " * " + len2 + " +");
+            } else {
+                tt = genExpCode(to_string(tmp.len2) + len1 + " * " + len2 + " +");
+            }
+            if (isNum(tt) && tmp.value_valid) {
+                return to_string(tmp.value[stoi(tt)]);
+            }
+            return tmp.genName + "[" + tt + "]";
+        }
     }
     return str;
 }
@@ -124,20 +175,60 @@ string genExpCode(string str) {
     stringstream input;
     input << str;
     int flag = 0, funcFlag = 0;
+    int brackCnt = 0;
     while (input >> res) {
         if (res == "[") {
-            string tmp = poNo.back();
-            poNo.pop_back();
-            poNo.push_back(tmp + "[");
-            flag = 1;
-        } else if (flag || res == "]") {
-            string tmp = poNo.back();
-            poNo.pop_back();
-            tmp += " ";
-            tmp += res;
-            poNo.push_back(tmp);
-            if (res == "]") flag = 0;
-        } else if (isCalSym(res)) {
+            string expInIndex;
+            brackCnt++;
+            while (input >> res) {
+                expInIndex += " " + res + " ";
+                if (res == "]") {
+                    brackCnt--;
+                    if (brackCnt == 0) {
+                        expInIndex = expInIndex.substr(0, expInIndex.size() - 3);
+                        string tmp = poNo.back();
+                        poNo.pop_back();
+                        if (isNum(expInIndex)) {
+                            poNo.push_back(tmp + "[" + expInIndex + "]");
+                        } else {
+                            string tt1 = getName("t_"); // if is num can be ignored TODO
+                            genAssignCode(tt1, expInIndex, 0);
+                            poNo.push_back(tmp + "[" + tt1 + "]");
+                        }
+                        break;
+                    }
+                } else if (res == "[") {
+                    brackCnt++;
+                }
+            }
+            input >> res;
+            expInIndex.clear();
+            if (res == "[") {   // 2d array
+                brackCnt++;
+                while (input >> res) {
+                    expInIndex += " " + res + " ";
+                    if (res == "]") {
+                        brackCnt--;
+                        if (brackCnt == 0) {
+                            expInIndex = expInIndex.substr(0, expInIndex.size() - 3);
+                            string tmp = poNo.back();
+                            poNo.pop_back();
+                            if (isNum(expInIndex)) {
+                                poNo.push_back(tmp + "[" + expInIndex + "]");
+                            } else {
+                                string tt2 = getName("t_");
+                                genAssignCode(tt2, expInIndex, 0);
+                                poNo.push_back(tmp + "[" + tt2 + "]");
+                            }
+                            break;
+                        }
+                    } else if (res == "[") {
+                        brackCnt++;
+                    }
+                }
+            }
+        }   // already read one, no need to add else
+        if (isCalSym(res)) {
             string a2 = poNo.back();
             a2 = getLvalCode(a2);
             poNo.pop_back();
@@ -198,8 +289,7 @@ string genExpCode(string str) {
                 printCode("test.txt", "%s", mCode);
                 mCode.clear();
             }
-
-        } else {
+        } else if (res != "]") {
             poNo.push_back(res);
         }
     }
@@ -212,7 +302,38 @@ string genExpCode(string str) {
 void genVarCode(string str) {
     int pos = getIdentPos(str);
     IDENT ident = identTable[pos];
-    string tmp;
+    string tmp, sz;
+    if (ident.type == INT_T || ident.type == CONST_T) {
+        tmp = "int";
+    } else if (ident.type == ARRAY_T_D1 || ident.type == CONST_ARR_T_D1) {
+        tmp = "arr1";
+    } else if (ident.type == ARRAY_T_D2 || ident.type == CONST_ARR_T_D2) {
+        tmp = "arr2";
+    }
+
+    if (ident.blockNum == 0) tmp += "Global_";
+    else tmp += "_";
+
+    tmp = getName(tmp);
+    identTable[pos].genName = tmp;
+    if (tmp.find("Global") != -1) {
+        for (int i = 0; i < identTable[pos].len1; i++) {
+            for (int j = 0; j < identTable[pos].len2; j++) {
+                identTable[pos].value.push_back(0);
+            }
+        }
+        identTable[pos].value_valid = true;
+    }
+
+    sz = to_string(identTable[pos].len1 * identTable[pos].len2);
+    printCode("test.txt", "var int %s\n", tmp);
+    middleCode.push_back("var int " + tmp + " " + sz);
+}
+
+void genConstCode(string str) {
+    int pos = getIdentPos(str);
+    IDENT ident = identTable[pos];
+    string tmp, sz;
     if (ident.type == INT_T || ident.type == CONST_T) {
         tmp = "t";
     } else if (ident.type == ARRAY_T_D1 || ident.type == CONST_ARR_T_D1) {
@@ -231,25 +352,9 @@ void genVarCode(string str) {
         identTable[pos].value_valid = true;
     }
 
-    printCode("test.txt", "var int %s\n", tmp);
-    middleCode.push_back("var int " + tmp);
-}
-
-void genConstCode(string str) {
-    int pos = getIdentPos(str);
-    IDENT ident = identTable[pos];
-    string tmp;
-    if (ident.type == INT_T || ident.type == CONST_T) {
-        tmp = getName("t_");
-    } else if (ident.type == ARRAY_T_D1 || ident.type == CONST_ARR_T_D1) {
-        tmp = getName("arr1_");
-    } else if (ident.type == ARRAY_T_D2 || ident.type == CONST_ARR_T_D2) {
-        tmp = getName("arr2_");
-    }
-    identTable[pos].genName = tmp;
-
+    sz = to_string(identTable[pos].len1 * identTable[pos].len2);
     printCode("test.txt", "const int %s\n", tmp);
-    middleCode.push_back("const int " + tmp);
+    middleCode.push_back("const int " + tmp + " " + sz);
 }
 
 void genAssignCode(string lval, string exp, int dim) {
@@ -258,8 +363,8 @@ void genAssignCode(string lval, string exp, int dim) {
         IDENT ident = getIdentTemporarily(lval);
         if (!ident.genName.empty()) {
             if (isNum(tt)) {
-                ident.value[0] = stoi(tt);
-                updateValue(ident);
+                //ident.value[0] = stoi(tt);
+                updateValue(ident, 0, stoi(tt));
             } else {
                 unvalidateValue(ident);
             }
@@ -267,13 +372,12 @@ void genAssignCode(string lval, string exp, int dim) {
         }
         middleCode.push_back(lval + " = " + tt);
     } else {
-        lval = getLvalCode(lval);
         exp.erase(std::remove(exp.begin(), exp.end(), '\n'), exp.end());
         int pos = 1;
         while (pos < exp.size() && (exp[pos] == '{' || exp[pos] == ' ')) pos++;
         string tt;
         int rCnt = -1;
-        for (int i = 0; i < exp.size(); i++) {
+        for (int i = pos; i < exp.size(); i++) {
             if (exp[i] == '{') continue;
             // int A[x][y] = {a, b, c};
             if (i > pos && (exp[i] == ',' || exp[i] == '}')) {
@@ -282,16 +386,17 @@ void genAssignCode(string lval, string exp, int dim) {
                 tt = genExpCode(tmp);
                 IDENT ident = getIdentTemporarily(lval);
                 if (isNum(tt)) {
-                    if (ident.value.size() < rCnt + 1) {
-                        ident.value.push_back(stoi(tt));    // TODO initialize
-                    } else {
-                        ident.value[rCnt] = stoi(tt);
-                    }
-                    updateValue(ident);
+//                    if (ident.value.size() < rCnt + 1) {
+//                        int k = ident.value.size();
+//                        ident.value.push_back(stoi(tt));    // TODO initialize
+//                    } else {
+//                        ident.value[rCnt] = stoi(tt);
+//                    }
+                    updateValue(ident, rCnt, stoi(tt));
                 } else {
                     unvalidateValue(ident);
                 }
-                middleCode.push_back(lval + "[" + to_string(rCnt) + "] = " + tt);
+                middleCode.push_back(getLvalCode(lval) + "[" + to_string(rCnt) + "] = " + tt);
                 if (PRINT) {
                     FILE *f = fopen("test.txt", "a");
                     fprintf(f, "%s[%d] = %s\n", lval.c_str(), rCnt, tt.c_str());
@@ -303,6 +408,7 @@ void genAssignCode(string lval, string exp, int dim) {
         }
         if (rCnt == -1) {    // A[x][y] = a + b;    // TODO
             tt = genExpCode(exp);
+            lval = getLvalCode(lval);
             middleCode.push_back(lval + " = " + tt);
             if (PRINT) {
                 FILE *f = fopen("test.txt", "a");
@@ -327,17 +433,56 @@ void genFuncDeclCode(string type, string name) {
     }
 }
 
-void genFuncParamCode(string type, string name) {
-    name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
-    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+void genFuncParamBlockCode() {
+    middleCode.push_back("@ " + to_string(getBlockNum()));
+}
+
+void genFuncParamCode(string type, string str) {
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+    stringstream input;
+    string res, name;
+    int len1 = -1, len2 = -1;
+    input << str;
+    while (input >> res) {
+        if (name.empty()) {
+            name = res;
+        } else if (res == "[") {
+            string tmpStr;
+            while (input >> res) {
+                if (res == "]") {
+                    if (tmpStr.empty()) {
+                        len1 = 1;//a[] a[][1]
+                    } else {
+                        string tt = genExpCode(tmpStr);
+                        if (isNum(tt)) {
+                            if (len1 == -1) len1 = stoi(tt);
+                            else len2 = stoi(tt);
+                        } // no else here, pay attention
+                    }
+                    tmpStr.clear();
+                    break;
+                }
+                tmpStr += " " + res + " ";
+            }
+        }
+    }
 
     int pos = getIdentPos(name);
     string tmp = getName("tParam_");
     identTable[pos].genName = tmp;
     middleCode.push_back("param " + type + " " + tmp);
+
+    identTable[pos].len1 = identTable[pos].len2 = 1;
+    if (type == "arr1") {
+        identTable[pos].len1 = len1;
+    } else if (type == "arr2") {
+        identTable[pos].len1 = len1;
+        identTable[pos].len2 = len2;
+    }
     if (PRINT) {
         FILE *f = fopen("test.txt", "a");
-        fprintf(f, "param %s %s\n", type.c_str(), tmp.c_str());
+        fprintf(f, "param %s %s %d\n", type.c_str(), tmp.c_str(), len2);
         fclose(f);
     }
 }
@@ -351,7 +496,9 @@ string genCallFuncCode(string name, vector<string> utils) {
         rParams.push_back(tt);
     }
 
-    for (const auto &tt: rParams) {
+    for (int i = 0; i < rParams.size(); i++) {
+        string tt = rParams[i];
+        if (ident.params[i].type != INT_T && ident.params[i].type != CONST_T) tt += "@addr";
         printCode("test.txt", "push %s\n", tt);
         middleCode.push_back("push " + tt);
     }
@@ -419,6 +566,7 @@ void genPrintfCode(string strCon, vector<string> vars) {
             }
             nameCnt++;
         } else {
+            string x = vars[varCnt];
             string tt = genExpCode(vars[varCnt]);
             middleCode.push_back("printf " + tt);
             if (PRINT) {
@@ -513,6 +661,8 @@ void genCondCode(string str, string beginStr, string elseStr, string endIfStr) {
 }
 
 bool isNum(string str) {
+    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+    if (str.empty()) return false;
     int start = 0;
     if (str[0] == '-') start = 1;
 

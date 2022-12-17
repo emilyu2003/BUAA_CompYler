@@ -7,6 +7,9 @@
 
 #include <string>
 
+#define GP_BASE 0x10008000
+#define FP_BASE 0x10040000
+
 void initGenerator();
 
 void printMiddleCode();
@@ -24,6 +27,9 @@ struct T_NAME {
 };
 
 int getSsaIdentPos(const std::string& name);
+
+void newVar(std::string s, int isGlobal);
+void newParam(std::string s);
 
 extern std::vector<std::string> middleCode;
 extern std::vector<T_NAME> ssaIdents;

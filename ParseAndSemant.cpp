@@ -145,7 +145,7 @@ vector<string> FuncRParams_S() {
     vector<string> utils;
     string tmpStr;
     int tmp = peek();   // tmp == IDENFR
-    while (tmp != RPARENT) {    // TODO dont know how to get type of RPARAMS
+    while (tmp != RPARENT) {
         string expCode;
         expCode = Exp_S();
         tmpStr += expCode;
@@ -480,44 +480,66 @@ string VarDecl_S() {
     return tmpStr;
 }
 
-string FuncFParam_S() {
+string FuncFParam_S(string funcName) {
     // now_S == INTTK
     int dimension = 0;
-    string tmpStr;
+    string tmpStr, ttmpStr, name;
     tmpStr += getStr() + " ";
     now_S = getSym();  // now_S == IDENFR
-    string name = getStr();
+    string fullName = getStr();
     tmpStr += " " + getStr() + " ";
+    name = getStr();
     int tmp = peek();
     if (tmp == LBRACK) {
         now_S = getSym();  // now_S == LBRACK
         tmpStr += " " + getStr() + " ";
+        fullName += " " + getStr() + " ";
         now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
+        fullName += " " + getStr() + " ";
         tmp = peek();
         dimension++;
         if (tmp == LBRACK) {
             now_S = getSym();  // now_S == LBRACK
             tmpStr += " " + getStr() + " ";
-            tmpStr += ConstExp_S();
+            fullName += " " + getStr() + " ";
+
+            ttmpStr = ConstExp_S();
+            tmpStr += ttmpStr;
+            fullName += " " + ttmpStr + " ";
 
             now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
+            fullName += " " + getStr() + " ";
             dimension++;
         }
     }
 
     IDENT tmpIdent;
+    string type;
     if (dimension == 0) {
         tmpIdent = {name, INT_T};
-    } else if (dimension == 2) {
+        type = "int";
+    } else if (dimension == 1) {
         tmpIdent = {name, ARRAY_T_D1};
+        type = "arr1";
     } else {
         tmpIdent = {name, ARRAY_T_D2};
+        type = "arr2";
     }
     appendIdent(tmpIdent);
+    int pos = getIdentPos(funcName);
+    identTable[pos].params.push_back(tmpIdent);
 
-    genFuncParamCode("int", tmpStr.substr(3, tmpStr.size() - 3));
+    int k = fullName.size() - 1;
+    if (dimension) {
+        while (fullName[k] == ' ') k--;
+        if (fullName[k] != ']') {
+            fullName += " ] ";
+        }
+    }
+
+    genFuncParamCode(type, fullName);
     printParseResult_S("FuncFParam_S");
     return tmpStr;
 }
@@ -529,7 +551,7 @@ string FuncFParams_S(string name) {
     while (tmp != RPARENT && tmp != LBRACE) {
         now_S = getSym(); // tmp == LPARENT
         tmpStr += " " + getStr() + " ";
-        tmpStr += FuncFParam_S();
+        tmpStr += FuncFParam_S(name);
         tmp = peek();
         if (tmp != RPARENT) {
             now_S = getSym();
@@ -551,6 +573,7 @@ string FuncDef_S(int type, string name) {
     } else {
         appendFUNC_VOID(name);
     }
+    genFuncParamBlockCode();
 
     string tmpStr;
     int tmp = peek();
@@ -661,7 +684,7 @@ string Stmt_S() {
         tmpStr += " " + getStr() + " ";
         now_S = getSym(); // now_S == LPARENT
         tmpStr += " " + getStr() + " ";
-        cond = Cond_S(); // TODO
+        cond = Cond_S();
         tmpStr += cond;
 
         genCondCode(cond, whileDoCnt.back(), "", whileEndCnt.back());

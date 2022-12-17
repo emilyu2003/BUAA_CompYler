@@ -21,6 +21,8 @@ int calculate(std::string s1, std::string s2, std::string s3);
 
 void genFuncDeclCode(std::string type, std::string name);
 
+void genFuncParamBlockCode();
+
 void genFuncParamCode(std::string type, std::string name);
 
 void genVarCode(std::string str);

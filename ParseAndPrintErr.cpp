@@ -180,7 +180,7 @@ vector<int> FuncRParams() {
     int tmp = peek();   // tmp == IDENFR
     int paramCnt = 0;
     while (tmp == IDENFR || tmp == LPARENT || tmp == PLUS || tmp == MINU ||
-           tmp == INTCON) {    // TODO dont know how to get type of RPARAMS
+           tmp == INTCON) {
         FuncRParamsType.push_back(Exp());
         tmp = peek();
         if (tmp == COMMA) {
