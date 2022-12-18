@@ -17,6 +17,7 @@ vector<IDENT> identTable;
 vector<int> identTableCnt;
 int maxBlockNum = 0;
 vector<int> tmpBlockNums;
+vector<string> genTotalName;
 vector<string> totalName;
 vector<int> totalNameCnt;
 
@@ -84,7 +85,6 @@ void appendARR1(string name) {
 
 void appendARR2(string name) {
     IDENT tmp = {name, ARRAY_T_D2};
-    //tmp.value = {0};  TODO initialize
     tmp.blockNum = getBlockNum();
     identTable.push_back(tmp);
     totalName.push_back(name);
@@ -319,6 +319,7 @@ string getName(string a) {
         if (totalName.empty()) flag = 1;
         if (flag) {
             totalName.push_back(str);
+            genTotalName.push_back(str);
             return str;
         }
     }

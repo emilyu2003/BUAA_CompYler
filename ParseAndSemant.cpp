@@ -394,15 +394,15 @@ string InitVal_S() {
             tmpStr += InitVal_S();
             tmp = peek();
         }
+        if(tmp == RBRACE) {
+            now_S = getSym();
+            tmpStr += " " + getStr() + " ";
+        }
     }
-    if (tmp != LBRACE && tmp != RBRACE) {
+    else {
         tmpStr += " " + Exp_S() + " ";
     }
 
-    tmp = peek();
-    if (tmp == RBRACE) {
-        now_S = getSym();
-    }
     printParseResult_S("InitVal_S");
     return tmpStr;
 }
@@ -434,6 +434,13 @@ string VarDef_S() {
             tmpStr += " " + getStr() + " ";
             dimension++;
         }
+    }
+
+    if(!len1.empty() && !isNum(len1)) {
+        len1 = genExpCodeNoPrint(len1);
+    }
+    if(!len2.empty() && !isNum(len2)) {
+        len2 = genExpCodeNoPrint(len2);
     }
 
     if (dimension == 0) {
@@ -573,7 +580,6 @@ string FuncDef_S(int type, string name) {
     } else {
         appendFUNC_VOID(name);
     }
-    genFuncParamBlockCode();
 
     string tmpStr;
     int tmp = peek();
@@ -688,7 +694,7 @@ string Stmt_S() {
         tmpStr += cond;
 
         genCondCode(cond, whileDoCnt.back(), "", whileEndCnt.back());
-        genString(doWhileStr + ":");
+        genString(doWhileStr + ":");    // TODO
 
         // now_S == RPARENT
         now_S = getSym();
@@ -774,6 +780,7 @@ string Block_S() {
 
     if (tmpFunc) {
         genReturnCode("");
+        genString("end of function");
     }
 
     endBlock();

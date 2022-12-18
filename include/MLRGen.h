@@ -21,8 +21,6 @@ int calculate(std::string s1, std::string s2, std::string s3);
 
 void genFuncDeclCode(std::string type, std::string name);
 
-void genFuncParamBlockCode();
-
 void genFuncParamCode(std::string type, std::string name);
 
 void genVarCode(std::string str);
@@ -48,6 +46,8 @@ void genReturnCode(std::string str);
 void genString(std::string str);
 
 std::string getFromStrCons(std::string str);
+
+std::string genExpCodeNoPrint(std::string str);
 
 extern int curBlockNum;
 extern std::string tAssign;

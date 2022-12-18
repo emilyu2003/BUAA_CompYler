@@ -108,6 +108,7 @@ std::string getName(std::string a);
 void printIdentTable();
 
 extern std::vector<IDENT> identTable;
+extern std::vector<std::string> genTotalName;
 extern std::vector<int> identTableCnt;
 extern std::vector<int> tmpBlockNums;
 extern int maxBlockNum;
