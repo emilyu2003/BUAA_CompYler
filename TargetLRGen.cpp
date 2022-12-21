@@ -20,6 +20,7 @@ vector<string> generatedCode;
 bool generatedStatus[100005];
 int fpBias = 0;
 int gpBias = 0;
+bool hasntReachedMain = true;
 
 // allocate register
 void initGenerator() {
@@ -108,7 +109,7 @@ string getAddr(string str, string target, bool print) {
             } else {
                 if (!target.empty()) {
                     string tt = getAddr(arrBias, "$s6", true);
-                    generatedCode.push_back("li $s7, " + ret);
+                    generatedCode.push_back("lw $s7, " + ret);
                     generatedCode.push_back("sll " + tt + ", " + tt + ", 2");
                     generatedCode.push_back("addu $s7, $s7, " + tt);
                 }
@@ -626,6 +627,7 @@ void mipsGen() {
         // main {
         if (s == "MAIN:") {
             generatedCode.emplace_back("main:");
+            hasntReachedMain = false;
             continue;
         }
 
@@ -749,7 +751,9 @@ void mipsGen() {
                 string tmp, res;
                 while (input >> res) {
                     if (res == "into" || res == "stack") continue;
-                    stackParams.push_back(res);
+                    if (hasntReachedMain) {
+                        stackParams.push_back(res);
+                    }
                 }
                 i++;
             }

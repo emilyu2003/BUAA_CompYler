@@ -323,10 +323,12 @@ string ConstDef_S() {
     tmpStr += " " + getStr() + " ";
     string name = getStr();
     int tmp = peek();
+    string len1, len2;
     if (tmp == LBRACK) {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
-        tmpStr += ConstExp_S();
+        len1 = ConstExp_S();
+        tmpStr += len1;
         now_S = getSym(); // now_S == RBRACK
         tmpStr += " " + getStr() + " ";
         tmp = peek();
@@ -334,20 +336,31 @@ string ConstDef_S() {
         if (tmp == LBRACK) {
             now_S = getSym();
             tmpStr += " " + getStr() + " ";
-            tmpStr += ConstExp_S();
+            len2 = ConstExp_S();
+            tmpStr += len2;
             now_S = getSym(); // now_S == RBRACK
             tmpStr += " " + getStr() + " ";
             dimension++;
         }
     }
 
+    if (!len1.empty() && !isNum(len1)) {
+        len1 = genExpCodeNoPrint(len1);
+    }
+    if (!len2.empty() && !isNum(len2)) {
+        len2 = genExpCodeNoPrint(len2);
+    }
+
     if (dimension == 0) {
         appendConst(name);
     } else if (dimension == 1) {
         appendConstARR1(name);
+        updateArrD1(name, len1);
     } else if (dimension == 2) {
         appendConstARR2(name);
+        updateArrD2(name, len1, len2);
     }
+
     genConstCode(name);
 
     tmp = peek();
@@ -394,12 +407,11 @@ string InitVal_S() {
             tmpStr += InitVal_S();
             tmp = peek();
         }
-        if(tmp == RBRACE) {
+        if (tmp == RBRACE) {
             now_S = getSym();
             tmpStr += " " + getStr() + " ";
         }
-    }
-    else {
+    } else {
         tmpStr += " " + Exp_S() + " ";
     }
 
@@ -436,10 +448,10 @@ string VarDef_S() {
         }
     }
 
-    if(!len1.empty() && !isNum(len1)) {
+    if (!len1.empty() && !isNum(len1)) {
         len1 = genExpCodeNoPrint(len1);
     }
-    if(!len2.empty() && !isNum(len2)) {
+    if (!len2.empty() && !isNum(len2)) {
         len2 = genExpCodeNoPrint(len2);
     }
 

@@ -143,7 +143,7 @@ string getLvalCode(string str) {
                 tt = to_string(tmp.len2 * stoi(len1) + stoi(len2));
             } else if (isNum(len1)) {
                 len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
-                tt = genExpCode(to_string(tmp.len2 * stoi(len1)) + len2 + " + ");
+                tt = genExpCode(to_string(tmp.len2 * stoi(len1)) + " " + len2 + " + ");
             } else if (isNum(len2)) {
                 len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
                 tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * " + len2 + " + ");
@@ -247,22 +247,16 @@ string genExpCode(string str) {
                     }
                     if (res == "<") {
                         middleCode.push_back("slt " + a1 + " " + a2 + " " + tt);
-                        mCode.append("slt ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     } else if (res == ">") {
                         middleCode.push_back("sgt " + a1 + " " + a2 + " " + tt);
-                        mCode.append("sgt ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     } else if (res == ">=") {
                         middleCode.push_back("sge " + a1 + " " + a2 + " " + tt);
-                        mCode.append("sge ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     } else if (res == "<=") {
                         middleCode.push_back("sle " + a1 + " " + a2 + " " + tt);
-                        mCode.append("sle ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     } else if (res == "==") {
                         middleCode.push_back("seq " + a1 + " " + a2 + " " + tt);
-                        mCode.append("seq ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     } else if (res == "!=") {
                         middleCode.push_back("sne " + a1 + " " + a2 + " " + tt);
-                        mCode.append("sne ").append(a1 + " ").append(a2 + " ").append(tt + "\n");
                     }
                     poNo.push_back(tt);
                 } else {
@@ -276,12 +270,7 @@ string genExpCode(string str) {
                         }
                     }
                     middleCode.push_back(res + " " + a1 + " " + a2 + " " + tt);
-                    mCode.append(res + " ").append(a1 + " ").append(a2 + " ")
-                            .append(tt).append("\n");
                 }
-
-                printCode("test.txt", "%s", mCode);
-                mCode.clear();
             }
         } else if (res != "]") {
             poNo.push_back(res);
@@ -316,7 +305,8 @@ void genVarCode(string str) {
         }
     }
     if (tmp.find("Global") != -1) {
-        identTable[pos].value_valid = true;
+        //identTable[pos].value_valid = true;
+        identTable[pos].value_valid = false;
     }
 
     sz = to_string(identTable[pos].len1 * identTable[pos].len2);
@@ -346,9 +336,7 @@ void genConstCode(string str) {
             identTable[pos].value.push_back(0);
         }
     }
-    if (tmp.find("Global") != -1) {
-        identTable[pos].value_valid = true;
-    }
+    identTable[pos].value_valid = true;
 
     sz = to_string(identTable[pos].len1 * identTable[pos].len2);
     printCode("test.txt", "const int %s\n", tmp);
@@ -483,34 +471,61 @@ string genCallFuncCode(string name, vector<string> utils) {
         middleCode.push_back("push " + tt);
     }
 
+    bool flag = false;
     for (auto tmp: identTable) {
-        if (tmp.blockNum == getBlockNum()) {
-            if (tmp.type == ARRAY_T_D1 || tmp.type == ARRAY_T_D2) {
-                int sz = tmp.len1 * tmp.len2;
-                for (int j = 0; j < sz; j++) {
-                    middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
-                }
-            } else if (tmp.genName.find("tParam") != -1) {
-                middleCode.push_back("into stack " + tmp.genName);
+        if (tmp.name == name && (tmp.type == FUNC_T_INT || tmp.type == FUNC_T_VOID)) {
+            flag = true;
+        }
+        if (!flag) continue;
+        if (tmp.genName.find("Global") != -1) continue;
+        if (tmp.type == ARRAY_T_D1 || tmp.type == ARRAY_T_D2) {
+            int sz = tmp.len1 * tmp.len2;
+            for (int j = 0; j < sz; j++) {
+                middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
             }
+        } else if (tmp.genName.find("tParam") != -1) {
+            middleCode.push_back("into stack " + tmp.genName);
         }
     }
 
+    flag = false;
     for (auto s: genTotalName) {
-        if (s.substr(0, 2) == "t_") {
-            int num = 0, cnt = 0;
-            for (int i = 0; i < s.size(); i++) {
-                if (s[i] == '_') cnt++;
-                if (cnt == 2) {
-                    num = stoi(s.substr(i + 1, s.size() - i - 1));
-                    break;
-                }
-            }
-            if (num == getBlockNum()) {
-                middleCode.push_back("into stack " + s);
-            }
+        if (s == name) {
+            flag = true;
+        }
+        if (flag && s != name && s.substr(0, 2) == "t_") {
+            middleCode.push_back("into stack " + s);
         }
     }
+
+//    for (auto tmp: identTable) {
+//        if (tmp.blockNum == getBlockNum()) {
+//            if (tmp.type == ARRAY_T_D1 || tmp.type == ARRAY_T_D2) {
+//                int sz = tmp.len1 * tmp.len2;
+//                for (int j = 0; j < sz; j++) {
+//                    middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
+//                }
+//            } else if (tmp.genName.find("tParam") != -1) {
+//                middleCode.push_back("into stack " + tmp.genName);
+//            }
+//        }
+//    }
+//
+//    for (auto s: genTotalName) {
+//        if (s.substr(0, 2) == "t_") {
+//            int num = 0, cnt = 0;
+//            for (int i = 0; i < s.size(); i++) {
+//                if (s[i] == '_') cnt++;
+//                if (cnt == 2) {
+//                    num = stoi(s.substr(i + 1, s.size() - i - 1));
+//                    break;
+//                }
+//            }
+//            if (num == getBlockNum()) {
+//                middleCode.push_back("into stack " + s);
+//            }
+//        }
+//    }
 
     utils.clear();
     printCode("test.txt", "call %s\n", name);
@@ -661,8 +676,13 @@ void genCondCode(string str, string beginStr, string elseStr, string endIfStr) {
         expStack.push_back(expCode);
     }
 
-    for (auto expStr: expStack) {
-        genAndCode(expStr, endStr);
+    for (int i = 0; i < expStack.size(); i++) {
+        if (i) {
+            middleCode.push_back(beginStr + "_sub_" + to_string(i - 1) + ":");
+        }
+        string expStr = expStack[i];
+        string end = (i == expStack.size() - 1) ? endStr : (beginStr + "_sub_" + to_string(i));
+        genAndCode(expStr, "j " + end);
         mCode.append("j ").append(beginStr + "\n");
         middleCode.push_back("j " + beginStr);
     }

@@ -115,6 +115,7 @@ void appendFUNC_INT(string name) {
     newBlock();
     //printIdentTable();
     totalName.push_back(name);
+    genTotalName.push_back(name);
 }
 
 void appendFUNC_VOID(string name) {
@@ -126,6 +127,7 @@ void appendFUNC_VOID(string name) {
     newBlock();
     //printIdentTable();
     totalName.push_back(name);
+    genTotalName.push_back(name);
 }
 
 void appendIdent(IDENT ident) {
