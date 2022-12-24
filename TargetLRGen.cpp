@@ -25,7 +25,7 @@ bool hasntReachedMain = true;
 // allocate register
 void initGenerator() {
     middleCode.pop_back();  // return 0
-    middleCode.pop_back();  // t_0 = 0
+    //middleCode.pop_back();  // t_0 = 0
     memset(generatedStatus, 0, sizeof(generatedStatus));
 
     for (const auto &s: middleCode) {
