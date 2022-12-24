@@ -23,6 +23,11 @@ vector<string> whileEndCnt;
 vector<string> whileStartCnt;
 vector<string> whileDoCnt;
 
+vector<string> ifEndCnt;
+vector<string> ifStartCnt;
+vector<string> elseStartCnt;
+vector<string> endStrCnt;
+
 void printParseResult_S(string s) {
 
 }
@@ -61,15 +66,24 @@ string EqExp_S() {
     return tmpStr;
 }
 
-string LAndExp_S() {
+string LAndExp_S(string endStr) {
     string tmpStr;
-    tmpStr += EqExp_S();
+    string exp = EqExp_S();
+    tmpStr += exp;
+    string tt = genExpCode(exp);
+    genString("beq $0 " + tt + " " + endStr);
+
     int tmp = peek();
     while (tmp == AND) {
         printParseResult_S("LAndExp_S");
         now_S = getSym();
         tmpStr += getStr();
-        tmpStr += " " + EqExp_S() + " ";
+        string exp = EqExp_S();
+        tmpStr += " " + exp + " ";
+
+        string tt = genExpCode(exp);
+        genString("beq $0 " + tt + " " + endStr);
+
         tmp = peek();
     }
 
@@ -79,15 +93,23 @@ string LAndExp_S() {
 
 string LOrExp_S() {
     string tmpStr;
-    tmpStr += LAndExp_S();
+    string beginStr = ifStartCnt.back();
+    int subCnt = 1;
+    string cond = LAndExp_S(beginStr + "_sub_" + to_string(subCnt));
+    tmpStr += cond;
+    genString("j " + beginStr);
     int tmp = peek();
     while (tmp == OR) {
         printParseResult_S("LOrExp_S");
         now_S = getSym();
         tmpStr += getStr();
-        tmpStr += " " + LAndExp_S() + " ";
+        genString(beginStr + "_sub_" + to_string(subCnt++) + ":");
+        cond = LAndExp_S(beginStr + "_sub_" + to_string(subCnt));
+        tmpStr += " " + cond + " ";
+        genString("j " + beginStr);
         tmp = peek();
     }
+    endStrCnt.push_back(beginStr + "_sub_" + to_string(subCnt));
 
     printParseResult_S("LOrExp_S");
     return tmpStr;
@@ -665,6 +687,9 @@ string Stmt_S() {
         string ifStartStr = getName("START_IF_");
         string ifEndStr = getName("END_IF_");
         string elseStartStr = getName("START_ELSE_");
+        ifStartCnt.push_back(ifStartStr);
+        elseStartCnt.push_back(elseStartStr);
+        ifEndCnt.push_back(ifEndStr);
         string cond;
         now_S = getSym();  // now_S == IFTK
         tmpStr += " " + getStr() + " ";
@@ -674,7 +699,7 @@ string Stmt_S() {
         tmpStr += cond;
         now_S = getSym(); // now_S == RPARENT
 
-        genCondCode(cond, ifStartStr, elseStartStr, ifEndStr);
+        //genCondCode(cond, ifStartStr, elseStartStr, ifEndStr);
         genString(ifStartStr + ":");
 
         tmpStr += " " + getStr() + " ";
@@ -682,12 +707,17 @@ string Stmt_S() {
         tmp = peek();
         genString("j " + ifEndStr);
         genString(elseStartStr + ":");
+        genString(endStrCnt.back() + ":");
+        endStrCnt.pop_back();
         if (tmp == ELSETK) {
             now_S = getSym(); // now_S == ELSETK
             tmpStr += " " + getStr() + " ";
             tmpStr += Stmt_S();
         }
         genString(ifEndStr + ":");
+        ifStartCnt.pop_back();
+        ifEndCnt.pop_back();
+        elseStartCnt.pop_back();
     } else if (tmp == WHILETK) {
         string startWhileStr = getName("START_WHILE_");
         string doWhileStr = getName("DO_WHILE_");
@@ -695,6 +725,11 @@ string Stmt_S() {
         whileStartCnt.push_back(startWhileStr);
         whileDoCnt.push_back(doWhileStr);
         whileEndCnt.push_back(endWhileStr);
+
+        ifStartCnt.push_back(doWhileStr);
+        elseStartCnt.emplace_back("");
+        ifEndCnt.push_back(endWhileStr);
+
         string cond;
 
         genString(whileStartCnt.back() + ":");
@@ -705,8 +740,11 @@ string Stmt_S() {
         cond = Cond_S();
         tmpStr += cond;
 
-        genCondCode(cond, whileDoCnt.back(), "", whileEndCnt.back());
+        //genCondCode(cond, whileDoCnt.back(), "", whileEndCnt.back());
         genString(doWhileStr + ":");    // TODO
+        ifStartCnt.pop_back();
+        ifEndCnt.pop_back();
+        elseStartCnt.pop_back();
 
         // now_S == RPARENT
         now_S = getSym();
@@ -714,8 +752,10 @@ string Stmt_S() {
         tmpStr += Stmt_S();
         genString("j " + whileStartCnt.back());
         genString(whileEndCnt.back() + ":");
+        genString(endStrCnt.back() + ":");
         whileEndCnt.pop_back();
         whileStartCnt.pop_back();
+        endStrCnt.pop_back();
     } else if (tmp == LBRACE) {
         tmpStr += Block_S();
     } else if (tmp == IDENFR) {

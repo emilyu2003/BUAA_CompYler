@@ -16,7 +16,7 @@ std::string RelExp_S();
 
 std::string EqExp_S();
 
-std::string LAndExp_S();
+std::string LAndExp_S(std::string endStr);
 
 std::string LOrExp_S();
 

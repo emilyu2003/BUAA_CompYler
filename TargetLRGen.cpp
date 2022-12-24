@@ -110,8 +110,8 @@ string getAddr(string str, string target, bool print) {
                 if (!target.empty()) {
                     string tt = getAddr(arrBias, "$s6", true);
                     generatedCode.push_back("lw $s7, " + ret);
-                    generatedCode.push_back("sll " + tt + ", " + tt + ", 2");
-                    generatedCode.push_back("addu $s7, $s7, " + tt);
+                    generatedCode.push_back("sll $s6, " + tt + ", 2");
+                    generatedCode.push_back("addu $s7, $s7, $s6");
                 }
             }
             ret = "($s7)";
@@ -122,8 +122,8 @@ string getAddr(string str, string target, bool print) {
                 if (!target.empty()) {
                     string tt = getAddr(arrBias, "$s6", true);  // maybe there's a problem, maybe not
                     generatedCode.push_back("li $s7, " + ret);
-                    generatedCode.push_back("sll " + tt + ", " + tt + ", 2");
-                    generatedCode.push_back("addu $s7, $s7, " + tt);
+                    generatedCode.push_back("sll $s6, " + tt + ", 2");
+                    generatedCode.push_back("addu $s7, $s7, $s6");
                 }
                 ret = "($s7)";
             }
@@ -277,6 +277,10 @@ void mipsGenAssign(string s) {
             a = res;
             string tmpa = getAddr(a, "$t8", false);
             if (tmpa == "$t8") toMem = getAddr(a, "", false);
+            if (toMem == "($s7)") {
+                generatedCode.push_back("move $s4, $s7");
+                toMem = "($s4)";
+            }
             a = tmpa;
         } else {
             if (isNum(res) && toMem.empty()) {
@@ -291,6 +295,10 @@ void mipsGenAssign(string s) {
                 } else {
                     string tmpb = getAddr(b, "$t9", false);
                     if (tmpb == "$t9") asnVal = getAddr(b, "", false);  // 0($xp) = toMem || b
+                    if (asnVal == "($s7)") {
+                        generatedCode.push_back("move $s5, $s7");
+                        asnVal = "($s5)";
+                    }
                     b = tmpb;
                 }
 

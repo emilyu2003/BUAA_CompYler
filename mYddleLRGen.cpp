@@ -11,6 +11,7 @@
 #include "IdentTable.h"
 #include "TLRGen.h"
 #include <unordered_map>
+#include <queue>
 
 #define PRINT 0
 
@@ -229,6 +230,7 @@ string genExpCode(string str) {
             string a1 = poNo.back();
             a1 = getLvalCode(a1);
             poNo.pop_back();
+            int what = poNo.size();
 
             if (isNum(a1) && isNum(a2) && (res != "||" && res != "&&")) {
                 int ansNum = calculate(a1, a2, res);
@@ -258,7 +260,7 @@ string genExpCode(string str) {
                     } else if (res == "!=") {
                         middleCode.push_back("sne " + a1 + " " + a2 + " " + tt);
                     }
-                    poNo.push_back(tt);
+                    //poNo.push_back(tt);
                 } else {
                     if (isNum(a1)) {
                         if (a1 == "0") {
@@ -466,7 +468,12 @@ string genCallFuncCode(string name, vector<string> utils) {
 
     for (int i = 0; i < rParams.size(); i++) {
         string tt = rParams[i];
-        if (ident.params[i].type != INT_T && ident.params[i].type != CONST_T) tt += "@addr";
+        if (ident.params[i].type != INT_T && ident.params[i].type != CONST_T) {
+            if (tt[tt.size() - 1] != ']' && tt.find("Param") != -1) {
+                tt += "[0]";
+            }
+            tt += "@addr";
+        }
         printCode("test.txt", "push %s\n", tt);
         middleCode.push_back("push " + tt);
     }
@@ -479,10 +486,10 @@ string genCallFuncCode(string name, vector<string> utils) {
         if (!flag) continue;
         if (tmp.genName.find("Global") != -1) continue;
         if (tmp.type == ARRAY_T_D1 || tmp.type == ARRAY_T_D2) {
-            int sz = tmp.len1 * tmp.len2;
-            for (int j = 0; j < sz; j++) {
-                middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
-            }
+//            int sz = tmp.len1 * tmp.len2;
+//            for (int j = 0; j < sz; j++) {
+//                middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
+//            }
         } else if (tmp.genName.find("tParam") != -1) {
             middleCode.push_back("into stack " + tmp.genName);
         }
@@ -497,35 +504,6 @@ string genCallFuncCode(string name, vector<string> utils) {
             middleCode.push_back("into stack " + s);
         }
     }
-
-//    for (auto tmp: identTable) {
-//        if (tmp.blockNum == getBlockNum()) {
-//            if (tmp.type == ARRAY_T_D1 || tmp.type == ARRAY_T_D2) {
-//                int sz = tmp.len1 * tmp.len2;
-//                for (int j = 0; j < sz; j++) {
-//                    middleCode.push_back("into stack " + tmp.genName + "[" + to_string(j) + "]");
-//                }
-//            } else if (tmp.genName.find("tParam") != -1) {
-//                middleCode.push_back("into stack " + tmp.genName);
-//            }
-//        }
-//    }
-//
-//    for (auto s: genTotalName) {
-//        if (s.substr(0, 2) == "t_") {
-//            int num = 0, cnt = 0;
-//            for (int i = 0; i < s.size(); i++) {
-//                if (s[i] == '_') cnt++;
-//                if (cnt == 2) {
-//                    num = stoi(s.substr(i + 1, s.size() - i - 1));
-//                    break;
-//                }
-//            }
-//            if (num == getBlockNum()) {
-//                middleCode.push_back("into stack " + s);
-//            }
-//        }
-//    }
 
     utils.clear();
     printCode("test.txt", "call %s\n", name);
@@ -550,13 +528,6 @@ void genPrintfCode(string strCon, vector<string> vars) {
                 strCons.push_back("\"" + tmp + "\"");
                 string name = getFromStrCons(tmp);
                 strNames.push_back(name);
-
-                // middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
-                if (PRINT) {
-                    FILE *f = fopen("test.txt", "a");
-                    fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
-                    fclose(f);
-                }
             }
             tmp.clear();
             arrangement.push_back(2);
@@ -570,34 +541,17 @@ void genPrintfCode(string strCon, vector<string> vars) {
         strCons.push_back("\"" + tmp + "\"");
         string name = getFromStrCons(tmp);
         strNames.push_back(name);
-
-        // middleCode.push_back("const string " + name + " = " + +"\"" + tmp + "\"");
-        if (PRINT) {
-            FILE *f = fopen("test.txt", "a");
-            fprintf(f, "const string %s = \"%s\"\n", name.c_str(), tmp.c_str());
-            fclose(f);
-        }
     }
 
     int nameCnt = 0, varCnt = 0;
     for (int i: arrangement) {
         if (i == 1) {
             middleCode.push_back("printf " + strNames[nameCnt]);
-            if (PRINT) {
-                FILE *f = fopen("test.txt", "a");
-                fprintf(f, "printf %s\n", strNames[nameCnt].c_str());
-                fclose(f);
-            }
             nameCnt++;
         } else {
             string x = vars[varCnt];
             string tt = genExpCode(vars[varCnt]);
             middleCode.push_back("printf " + tt);
-            if (PRINT) {
-                FILE *f = fopen("test.txt", "a");
-                fprintf(f, "printf %s\n", tt.c_str());
-                fclose(f);
-            }
             varCnt++;
         }
     }
@@ -623,70 +577,6 @@ void genReturnCode(string str) {
     if (t2.size()) t2 = " " + t2;
     printCode("test.txt", "ret%s\n", t2);
     middleCode.push_back("ret" + t2);
-}
-
-
-void genAndCode(string str, string endStr) {
-    vector<string> expStack;
-    stringstream input;
-    input << str;
-    string res1, mCode;
-    string expCode;
-
-    // devide by &&
-    while (input >> res1) {
-        if (res1 == "&&") {
-            expStack.push_back(expCode);
-            expCode.clear();
-            //expStack.push_back(res1);
-        } else {
-            expCode += " " + res1 + " ";
-        }
-    }
-    if (!expCode.empty()) {
-        expStack.push_back(expCode);
-    }
-
-    for (auto res: expStack) {
-        string tt = genExpCode(res);
-        middleCode.push_back("beq $0 " + tt + " " + endStr);
-        mCode.append("beq $0 ").append(tt + " ").append(endStr + "\n");
-    }
-    printCode("test.txt", "%s", mCode);
-}
-
-void genCondCode(string str, string beginStr, string elseStr, string endIfStr) {
-    vector<string> expStack;
-    stringstream input;
-    input << str;
-    string expCode, mCode, res1;
-
-    string endStr = (elseStr.empty() ? endIfStr : elseStr);
-
-    // devide by ||
-    while (input >> res1) {
-        if (res1 == "||") {
-            expStack.push_back(expCode);
-            expCode.clear();
-        } else {
-            expCode += " " + res1 + " ";
-        }
-    }
-    if (!expCode.empty()) {
-        expStack.push_back(expCode);
-    }
-
-    for (int i = 0; i < expStack.size(); i++) {
-        if (i) {
-            middleCode.push_back(beginStr + "_sub_" + to_string(i - 1) + ":");
-        }
-        string expStr = expStack[i];
-        string end = (i == expStack.size() - 1) ? endStr : (beginStr + "_sub_" + to_string(i));
-        genAndCode(expStr, "j " + end);
-        mCode.append("j ").append(beginStr + "\n");
-        middleCode.push_back("j " + beginStr);
-    }
-    printCode("test.txt", "%s", mCode);
 }
 
 string genExpCodeNoPrint(string str) {
