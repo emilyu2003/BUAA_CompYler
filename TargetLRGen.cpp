@@ -74,9 +74,6 @@ string getAddr(string str, string target, bool print) {
     if (str.find("$t") != -1) return str;
     if (isNum(str)) return str;
     bool isParam = false;
-    if (str.find("Param") != -1) {  // nothing to do here
-        isParam = true;
-    }
 
     int pos = getSsaIdentPos(str);
 
@@ -94,6 +91,9 @@ string getAddr(string str, string target, bool print) {
             }
         }
         pos = getSsaIdentPos(arrName);
+    }
+    if (arrName.find("Param") != -1) {  // nothing to do here
+        isParam = true;
     }
 
     string ret = ssaIdents[pos].addr;

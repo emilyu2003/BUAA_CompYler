@@ -39,20 +39,45 @@ string getLvalCode(string str) {
 
     // array
     int cnt1 = -1, cnt2 = -1;
-    for (int i = 0; i < str.size(); i++) {
+    int brackCnt = 0, startCnt = 0;
+    string tmpLen;
+    while (startCnt < str.size() && str[startCnt] != '[') {
+        if (str[startCnt] != ' ') name += str[startCnt];
+        startCnt++;
+    }
+    for (int i = startCnt; i < str.size(); i++) {
+        if (brackCnt == 0) {
+            while (i < str.size() && str[i] != '[') i++;
+        }
+        if (i >= str.size()) break;
         if (str[i] == '[') {
-            if (cnt1 == -1) {
-                name = str.substr(0, i);
-                name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-            }
-            cnt1 = i;
+            tmpLen += str[i];
+            brackCnt++;
         } else if (str[i] == ']') {
-            if (cnt2 == -1) {
-                len1 = str.substr(cnt1 + 1, i - cnt1 - 1);
-            } else {
-                len2 = str.substr(cnt1 + 1, i - cnt1 - 1);
+            brackCnt--;
+            tmpLen += str[i];
+            if (brackCnt == 0) {
+                if (cnt1 == -1) {
+                    cnt1 = 1;
+                    len1 = genExpCode(tmpLen.substr(1, tmpLen.size() - 2));
+                    if (len1.find('[') != -1) {
+                        string tt = getName("t_");
+                        genString(tt + " = " + len1);
+                        len1 = tt;
+                    }
+                } else if (cnt2 == -1) {
+                    cnt2 = 1;
+                    len2 = genExpCode(tmpLen.substr(1, tmpLen.size() - 2));
+                    if (len2.find('[') != -1) {
+                        string tt = getName("t_");
+                        genString(tt + " = " + len2);
+                        len2 = tt;
+                    }
+                }
+                tmpLen.clear();
             }
-            cnt2 = i;
+        } else {
+            tmpLen += str[i];
         }
     }
 

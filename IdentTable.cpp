@@ -292,7 +292,7 @@ void throwError(int code, int line) {
     correctFlag = true;
 }
 
-IDENT getIdentTemporarily(std::string name) {
+IDENT getIdentTemporarily(string name) {
     for (int i = identTable.size() - 1; i >= 0; i--) {
         if (identTable[i].name == name) {
             return identTable[i];
@@ -301,8 +301,9 @@ IDENT getIdentTemporarily(std::string name) {
     return {};
 }
 
-int getIdentPos(std::string name) {
+int getIdentPos(string name) {
     for (int i = identTable.size() - 1; i >= 0; i--) {
+        IDENT tmp = identTable[i];
         if (identTable[i].name == name) {
             return i;
         }
