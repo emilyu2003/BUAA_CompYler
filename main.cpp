@@ -25,6 +25,7 @@ bool finishedParsing;
 int main() {
     freopen("testfile.txt", "r", stdin);
     freopen("mips.txt", "w", stdout);
+    //freopen("error.txt", "w", stdout);
 
     // read code
     string tmp;
@@ -69,12 +70,12 @@ int main() {
     initGenerator();
     mipsGen();
 
-    f = fopen("mips.txt", "w");
+//    f = fopen("mips.txt", "w");
     for (auto &i: generatedCode) {
         //fprintf(f, "%s\n", i.c_str());
         cout << i << endl;
     }
-    fclose(f);
+//    fclose(f);
 
     return 0;
 }

@@ -39,6 +39,7 @@
 #define RBRACK      36
 #define LBRACE      37
 #define RBRACE      38
+#define BITAND      39
 
 #include <string>
 

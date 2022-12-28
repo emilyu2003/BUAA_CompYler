@@ -286,9 +286,9 @@ void throwError(int code, int line) {
 //    FILE *f = fopen("error.txt", "a");
 //    fprintf(f, "%d %c\n", line + 1, 'a' - code - 1);
 //    fclose(f);
-    // printf("%d %c\n", line + 1, 'a' - code - 1);
+    //printf("%d %c\n", line + 1, 'a' - code - 1);
     lastLine = line;
-    // correctFlag = false;
+    //correctFlag = false;
     correctFlag = true;
 }
 

@@ -278,7 +278,7 @@ int UnaryExp() {
 int MulExp() {
     int rtNum = UnaryExp();
     int tmp = peek();
-    while (tmp == MULT || tmp == DIV || tmp == MOD) {
+    while (tmp == MULT || tmp == DIV || tmp == MOD || tmp == BITAND) {
         printParseResult("MulExp");
         now = getSym();  // now == PLUS
         UnaryExp();
@@ -448,6 +448,7 @@ int VarDef() {
     int tmpLine = getErrorLine();
     int tmp = peek();
     int dimension = 0;
+
     if (tmp == LBRACK) {
         now = getSym();
         ConstExp();
@@ -475,7 +476,14 @@ int VarDef() {
     tmp = peek();
     if (tmp == ASSIGN) {
         now = getSym();
-        InitVal();
+        tmp = peek();
+        if (tmp == GETINTTK) {
+            now = getSym(); // now == GETINTTK
+            now = getSym(); // now == LPARENT
+            now = getSym(); // now == RPARENT
+        } else {
+            InitVal();
+        }
     }
 
     if (ifReDefine(name)) {

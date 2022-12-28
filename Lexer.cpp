@@ -19,7 +19,7 @@ string symbol[40] = {
         "GETINTTK", "PRINTFTK", "RETURNTK", "PLUS", "MINU", "VOIDTK", "MULT",
         "DIV", "MOD", "LSS", "LEQ", "GRE", "GEQ", "EQL",
         "NEQ", "ASSIGN", "SEMICN", "COMMA", "LPARENT", "RPARENT", "LBRACK",
-        "RBRACK", "LBRACE", "RBRACE"
+        "RBRACK", "LBRACE", "RBRACE", "BITAND"
 };
 
 
@@ -37,6 +37,7 @@ void initLexer() {
     FormatString["printf"] = PRINTFTK;
     FormatString["return"] = RETURNTK;
     FormatString["void"] = VOIDTK;
+    FormatString["bitand"] = BITAND;
 
     FormatString["!"] = NOT;
     FormatString["&&"] = AND;

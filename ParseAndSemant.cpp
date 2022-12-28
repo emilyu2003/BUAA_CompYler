@@ -264,7 +264,7 @@ string MulExp_S() {
     string tmpStr;
     tmpStr += UnaryExp_S();
     int tmp = peek();
-    while (tmp == MULT || tmp == DIV || tmp == MOD) {
+    while (tmp == MULT || tmp == DIV || tmp == MOD || tmp == BITAND) {
         printParseResult_S("MulExp_S");
         now_S = getSym();  // now_S == PLUS
         string sym = getStr();
@@ -495,9 +495,21 @@ string VarDef_S() {
         now_S = getSym();
         tmpStr += " " + getStr() + " ";
         //tmpStr += InitVal_S();
-        expCode = InitVal_S();
-        tmpStr += expCode;
-        genAssignCode(name, expCode, dimension);
+        tmp = peek();
+        if (tmp == GETINTTK) {
+            now_S += getSym(); // now == GETINTTK
+            tmpStr += " " + getStr() + " ";
+            now_S += getSym(); // now == LPARENT
+            tmpStr += " " + getStr() + " ";
+            now_S += getSym(); // now == RPARENT
+            tmpStr += " " + getStr() + " ";
+            string tt = genScanfCode();
+            genAssignCode(name, tt, 0);
+        } else {
+            expCode = InitVal_S();
+            tmpStr += expCode;
+            genAssignCode(name, expCode, dimension);
+        }
     }
 
     printParseResult_S("VarDef_S");

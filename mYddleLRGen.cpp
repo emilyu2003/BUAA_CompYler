@@ -448,6 +448,7 @@ string genExpCode(string str) {
                     }
                     //poNo.push_back(tt);
                 } else {
+                    if(res == "bitand") res = '&';
                     if (isNum(a1)) {
                         if (a1 == "0") {
                             a1 = "$0";
@@ -931,7 +932,7 @@ bool isNum(string str) {
 bool isCalSym(string res) {
     if (res == "+" || res == "-" || res == "/" || res == "%"
         || res == "*" || res == "!" || res == ">=" || res == ">"
-        || res == "<=" || res == "<" || res == "==" || res == "!=") {
+        || res == "<=" || res == "<" || res == "==" || res == "!=" || res == "bitand") {
         return true;
     }
     return false;
@@ -952,6 +953,7 @@ int calculate(string a1, string a2, string sym) {
     if (sym == "-") return b1 - b2;
     if (sym == "*") return b1 * b2;
     if (sym == "/") return b1 / b2;
+    if (sym == "bitand") return b1 & b2;
     if (sym == "%") return b1 % b2;
     if (sym == "!") return b2 == 0;
     if (sym == "<") return b1 < b2;

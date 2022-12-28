@@ -203,12 +203,12 @@ void mipsGenExp(string s) {
     input << s;
     string toMem;
     while (input >> res) {
-        if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%" || res == "!") continue;
+        if (res == "+" || res == "-" || res == "*" || res == "/" || res == "%" || res == "!" || res == "&") continue;
         if (a.empty()) a = res;
         else if (b.empty()) b = res;
         else if (c.empty()) c = res;
     }
-    if (s[0] == '+' || s[0] == '*') {
+    if (s[0] == '+' || s[0] == '*' || s[0] == '&') {
         if (isNum(a)) {
             swap(a, b);
         }
@@ -257,6 +257,12 @@ void mipsGenExp(string s) {
             b = "$t9";
         }
         generatedCode.push_back("seq " + c + ", " + b + ", $0");
+    } else if (s[0] == '&') {
+        if (isNum(b) && stoi(b) < 0) {
+            generatedCode.push_back("li $t9, " + b);
+            b = "$t9";
+        }
+        generatedCode.push_back("and " + c + ", " + a + ", " + b);
     }
 
     if (tmpc == "$t8") {
@@ -585,7 +591,7 @@ void mipsGen() {
         }
 
         // exp
-        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!') {
+        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!' || s[0] == '&') {
             mipsGenExp(s);
             generatedStatus[i] = true;
             continue;
@@ -859,7 +865,7 @@ void mipsGen() {
         }
 
         // exp
-        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!') {
+        if (s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/' || s[0] == '%' || s[0] == '!' || s[0] == '&') {
             mipsGenExp(s);
             generatedStatus[i] = true;
             continue;
