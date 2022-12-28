@@ -157,9 +157,162 @@ string getLvalCode(string str) {
             } else {
                 tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * ");
             }
+//            if (isNum(tt) && tmp.value_valid) {
+//                return to_string(tmp.value[stoi(tt)]);
+//            }
+            return tmp.genName + "[" + tt + "]";
+        } else {    // a[x][y] as a[i][j]
+            string tt;
+            if (isNum(len1) && isNum(len2)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
+                tt = to_string(tmp.len2 * stoi(len1) + stoi(len2));
+            } else if (isNum(len1)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                tt = genExpCode(to_string(tmp.len2 * stoi(len1)) + " " + len2 + " + ");
+            } else if (isNum(len2)) {
+                len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
+                tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * " + len2 + " + ");
+            } else {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                len2.erase(std::remove(len2.begin(), len2.end(), ' '), len2.end());
+                tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * " + len2 + " + ");
+            }
             if (isNum(tt) && tmp.value_valid) {
                 return to_string(tmp.value[stoi(tt)]);
             }
+            return tmp.genName + "[" + tt + "]";
+        }
+    }
+    return str;
+}
+
+string getLvalCodeWithoutNum(string str) {
+    string name, len1, len2;
+
+    // array
+    int cnt1 = -1, cnt2 = -1;
+    int brackCnt = 0, startCnt = 0;
+    string tmpLen;
+    while (startCnt < str.size() && str[startCnt] != '[') {
+        if (str[startCnt] != ' ') name += str[startCnt];
+        startCnt++;
+    }
+    for (int i = startCnt; i < str.size(); i++) {
+        if (brackCnt == 0) {
+            while (i < str.size() && str[i] != '[') i++;
+        }
+        if (i >= str.size()) break;
+        if (str[i] == '[') {
+            tmpLen += str[i];
+            brackCnt++;
+        } else if (str[i] == ']') {
+            brackCnt--;
+            tmpLen += str[i];
+            if (brackCnt == 0) {
+                if (cnt1 == -1) {
+                    cnt1 = 1;
+                    len1 = genExpCode(tmpLen.substr(1, tmpLen.size() - 2));
+                    if (len1.find('[') != -1) {
+                        string tt = getName("t_");
+                        genString(tt + " = " + len1);
+                        len1 = tt;
+                    }
+                } else if (cnt2 == -1) {
+                    cnt2 = 1;
+                    len2 = genExpCode(tmpLen.substr(1, tmpLen.size() - 2));
+                    if (len2.find('[') != -1) {
+                        string tt = getName("t_");
+                        genString(tt + " = " + len2);
+                        len2 = tt;
+                    }
+                }
+                tmpLen.clear();
+            }
+        } else {
+            tmpLen += str[i];
+        }
+    }
+
+    // ident
+    if (cnt1 == -1) {
+        int flag = 0;
+        if (str.find("!") != -1) {
+            flag = 1;
+            str = str.substr(str.find("!") + 1);
+        }
+        if (isNum(str)) {
+            int num = stoi(str);
+            if (flag) {
+                if (num == 0) return to_string(1);
+                else return to_string(0);
+            } else {
+                return str;
+            }
+        }
+        int tmpPos = getIdentPos(str);
+        if (tmpPos == -1) {
+            if (flag) {
+                string tt = getName("t_");
+                middleCode.push_back("seq " + tt + " " + str + " $0 ");
+                return tt;
+            }
+            return str;
+        }
+        IDENT tmp = identTable[tmpPos];
+        if (tmp.type == INT_T || tmp.type == CONST_T) {
+//            if (tmp.value_valid) {
+//                if (flag) {
+//                    return to_string(!tmp.value[0]);
+//                }
+//                return to_string(tmp.value[0]);
+//            }
+            if (flag) {
+                string tt = getName("t_");
+                middleCode.push_back("seq " + tt + " " + tmp.genName + " $0 ");
+                return tt;
+            }
+            return tmp.genName;
+        }
+    }
+
+    // array
+    int tmpPos;
+    if (name.empty()) {
+        tmpPos = getIdentPos(str);
+    } else {
+        tmpPos = getIdentPos(name);
+    }
+    IDENT tmp = identTable[tmpPos];
+    if (tmp.type == CONST_ARR_T_D1 || tmp.type == ARRAY_T_D1) {
+        if (len1.empty()) {         // a[x] but paramed as a
+            return tmp.genName;
+        } else {
+            string tt;
+            if (isNum(len1)) {
+                tt = to_string(stoi(len1));
+            } else {
+                tt = genExpCode(len1);
+            }
+//            if (isNum(tt) && tmp.value_valid) {
+//                return to_string(tmp.value[stoi(tt)]);
+//            }
+            return tmp.genName + "[" + tt + "]";
+        }
+    } else if (tmp.type == CONST_ARR_T_D2 || tmp.type == ARRAY_T_D2) {
+        if (len1.empty()) {      // a[x][y] but only send param named a
+            return tmp.genName;
+        } else if (len2.empty()) {             // a[x][y] but only send param named a[i]
+            string tt;
+            if (isNum(len1)) {
+                len1.erase(std::remove(len1.begin(), len1.end(), ' '), len1.end());
+                tt = to_string(stoi(len1) * tmp.len2);
+            } else {
+                tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * ");
+            }
+//            if (isNum(tt) && tmp.value_valid) {
+//                return to_string(tmp.value[stoi(tt)]);
+//            }
             return tmp.genName + "[" + tt + "]";
         } else {    // a[x][y] as a[i][j]
             string tt;
@@ -176,9 +329,9 @@ string getLvalCode(string str) {
             } else {
                 tt = genExpCode(to_string(tmp.len2) + " " + len1 + " * " + len2 + " + ");
             }
-            if (isNum(tt) && tmp.value_valid) {
-                return to_string(tmp.value[stoi(tt)]);
-            }
+//            if (isNum(tt) && tmp.value_valid) {
+//                return to_string(tmp.value[stoi(tt)]);
+//            }
             return tmp.genName + "[" + tt + "]";
         }
     }
@@ -211,8 +364,12 @@ string genExpCode(string str) {
                         if (isNum(expInIndex)) {
                             poNo.push_back(tmp + "[" + expInIndex + "]");
                         } else {
-                            string tt1 = getName("t_"); // if is num can be ignored TODO
-                            genAssignCode(tt1, expInIndex, 0);
+                            string tt1 = genExpCode(expInIndex);
+                            if (tt1.find('[') != -1) {
+                                string tt2 = getName("t_");
+                                genString(tt2 + " = " + tt1);
+                                tt1 = tt2;
+                            }
                             poNo.push_back(tmp + "[" + tt1 + "]");
                         }
                         break;
@@ -236,9 +393,13 @@ string genExpCode(string str) {
                             if (isNum(expInIndex)) {
                                 poNo.push_back(tmp + "[" + expInIndex + "]");
                             } else {
-                                string tt2 = getName("t_");
-                                genAssignCode(tt2, expInIndex, 0);
-                                poNo.push_back(tmp + "[" + tt2 + "]");
+                                string tt1 = genExpCode(expInIndex);
+                                if (tt1.find('[') != -1) {
+                                    string tt2 = getName("t_");
+                                    genString(tt2 + " = " + tt1);
+                                    tt1 = tt2;
+                                }
+                                poNo.push_back(tmp + "[" + tt1 + "]");
                             }
                             break;
                         }
@@ -267,10 +428,10 @@ string genExpCode(string str) {
                 if (res == "<" || res == ">=" || res == ">" || res == "<=" || res == "==" || res == "!=") {
                     if (isNum(a1)) {
                         swap(a1, a2);
-                        if (res == "<") res = ">=";
-                        else if (res == ">") res = "<=";
-                        else if (res == "<=") res = ">";
-                        else if (res == ">=") res = "<";
+                        if (res == "<") res = ">";
+                        else if (res == ">") res = "<";
+                        else if (res == "<=") res = ">=";
+                        else if (res == ">=") res = "<=";
                     }
                     if (res == "<") {
                         middleCode.push_back("slt " + a1 + " " + a2 + " " + tt);
@@ -335,7 +496,7 @@ void genVarCode(string str) {
         //identTable[pos].value_valid = true;
         identTable[pos].value_valid = false;
     }
-
+    int a = identTable[pos].len1, b = identTable[pos].len2;
     sz = to_string(identTable[pos].len1 * identTable[pos].len2);
     printCode("test.txt", "var int %s\n", tmp);
     middleCode.push_back("var int " + tmp + " " + sz);
@@ -376,7 +537,7 @@ void genAssignCode(string lval, string exp, int dim) {
         int pos = getIdentPos(lval);
         if (pos == -1) {
             tt = genExpCode(exp);
-            lval = getLvalCode(lval);
+            lval = getLvalCodeWithoutNum(lval);
             middleCode.push_back(lval + " = " + tt);
         } else {
             IDENT ident = getIdentTemporarily(lval);
@@ -410,7 +571,7 @@ void genAssignCode(string lval, string exp, int dim) {
                     } else {
                         unvalidateValue(ident);
                     }
-                    middleCode.push_back(getLvalCode(lval) + "[" + to_string(rCnt) + "] = " + tt);
+                    middleCode.push_back(getLvalCodeWithoutNum(lval) + "[" + to_string(rCnt) + "] = " + tt);
                 } else {
                     tmp += exp[i];
                 }
@@ -422,13 +583,41 @@ void genAssignCode(string lval, string exp, int dim) {
                 IDENT ident = getIdentTemporarily(lval);
                 if (isNum(tt)) updateValue(ident, rCnt, stoi(tt));
                 else unvalidateValue(ident);
-                middleCode.push_back(getLvalCode(lval) + "[" + to_string(rCnt) + "] = " + tt);
+                middleCode.push_back(getLvalCodeWithoutNum(lval) + "[" + to_string(rCnt) + "] = " + tt);
             }
         }
         if (rCnt == -1) {    // A[x][y] = a + b;
+            string name, len, tmpName;
             tt = genExpCode(exp);
-            lval = getLvalCode(lval);
+            for (char i: lval) {
+                if (i == '[') {
+                    name = tmpName;
+                    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+                    tmpName.clear();
+                    break;
+                }
+                tmpName += i;
+            }
+            lval = getLvalCodeWithoutNum(lval);
             middleCode.push_back(lval + " = " + tt);
+
+            for (char i: lval) {
+                if (i == '[') {
+                    tmpName.clear();
+                } else if (i == ']') {
+                    len = tmpName;
+                    len.erase(std::remove(len.begin(), len.end(), ' '), len.end());
+                    tmpName.clear();
+                } else {
+                    tmpName += i;
+                }
+            }
+            IDENT ident = getIdentTemporarily(name);
+            if (isNum(tt) && isNum(len)) {
+                updateValue(ident, stoi(len), stoi(tt));
+            } else {
+                unvalidateValue(ident);
+            }
         }
     }
 }
@@ -630,8 +819,7 @@ string genExpCodeNoPrint(string str) {
                         if (isNum(expInIndex)) {
                             poNo.push_back(tmp + "[" + expInIndex + "]");
                         } else {
-                            string tt1 = getName("t_"); // if is num can be ignored TODO
-                            genAssignCode(tt1, expInIndex, 0);
+                            string tt1 = genExpCodeNoPrint(expInIndex);
                             poNo.push_back(tmp + "[" + tt1 + "]");
                         }
                         break;
@@ -655,8 +843,7 @@ string genExpCodeNoPrint(string str) {
                             if (isNum(expInIndex)) {
                                 poNo.push_back(tmp + "[" + expInIndex + "]");
                             } else {
-                                string tt2 = getName("t_");
-                                genAssignCode(tt2, expInIndex, 0);
+                                string tt2 = genExpCodeNoPrint(expInIndex);
                                 poNo.push_back(tmp + "[" + tt2 + "]");
                             }
                             break;

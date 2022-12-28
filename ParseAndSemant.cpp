@@ -780,9 +780,16 @@ string Stmt_S() {
                 string tt = genScanfCode();
                 genAssignCode(name, tt, 0);
             } else {
-                int dim = 0;
+                int dim = 0, brackCnt = 0;
                 for (char i: name) {
-                    if (i == '[') dim++;
+                    if (i == '[')
+                        brackCnt++;
+                    else if (i == ']') {
+                        brackCnt--;
+                        if (brackCnt == 0) {
+                            dim++;
+                        }
+                    }
                 }
                 string expCode;
                 expCode = " " + Exp_S() + " ";
